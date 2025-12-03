@@ -52,22 +52,37 @@ namespace BizlyWeb.Controllers
                 return View(model);
             }
 
-            var response = await _authService.LoginAsync(model.Email, model.Password);
-
-            if (response != null)
+            try
             {
-                TempData["SuccessMessage"] = $"¡Bienvenido, {response.Nombre ?? model.Email}!";
-                
-                if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+                var response = await _authService.LoginAsync(model.Email, model.Password);
+
+                if (response != null)
                 {
-                    return Redirect(model.ReturnUrl);
-                }
+                    TempData["SuccessMessage"] = $"¡Bienvenido, {response.Nombre ?? model.Email}!";
+                    
+                    if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+                    {
+                        return Redirect(model.ReturnUrl);
+                    }
 
-                return RedirectToAction("Index", "Dashboard");
+                    return RedirectToAction("Index", "Dashboard");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Email o contraseña incorrectos.");
+                    return View(model);
+                }
             }
-            else
+            catch (InvalidOperationException ex)
             {
-                ModelState.AddModelError(string.Empty, "Email o contraseña incorrectos.");
+                _logger.LogError(ex, "Error de negocio en login: {Message}", ex.Message);
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error inesperado en login: {Message}", ex.Message);
+                ModelState.AddModelError(string.Empty, "Ocurrió un error al intentar iniciar sesión. Por favor, intente nuevamente.");
                 return View(model);
             }
         }

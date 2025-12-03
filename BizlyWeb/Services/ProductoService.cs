@@ -28,8 +28,7 @@ namespace BizlyWeb.Services
 
         private string? GetEmpresaId()
         {
-            return _httpContextAccessor.HttpContext?.Session.GetInt32("EmpresaId")?.ToString()
-                   ?? _httpContextAccessor.HttpContext?.Session.GetString("EmpresaId");
+            return SessionHelper.GetEmpresaId(_httpContextAccessor);
         }
 
         /// <summary>

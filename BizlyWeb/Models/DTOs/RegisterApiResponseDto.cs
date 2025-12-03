@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BizlyWeb.Models.DTOs
 {
     /// <summary>
@@ -5,6 +7,7 @@ namespace BizlyWeb.Models.DTOs
     /// </summary>
     public class RegisterApiResponseDto
     {
+        [JsonPropertyName("usuario")]
         public UsuarioApiDto? Usuario { get; set; }
     }
 }

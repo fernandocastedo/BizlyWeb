@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using BizlyWeb.Services.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace BizlyWeb.Services
 {
@@ -15,16 +16,19 @@ namespace BizlyWeb.Services
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<ApiService>? _logger;
         private readonly string _baseUrl;
 
         public ApiService(
             HttpClient httpClient,
             IHttpContextAccessor httpContextAccessor,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<ApiService>? logger = null)
         {
             _httpClient = httpClient;
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
+            _logger = logger;
             _baseUrl = _configuration["ApiSettings:BaseUrl"] ?? "https://apibizly.onrender.com";
             
             _httpClient.BaseAddress = new Uri(_baseUrl);
@@ -123,6 +127,12 @@ namespace BizlyWeb.Services
                 var response = await _httpClient.PostAsync(endpoint, content);
                 var responseContent = await response.Content.ReadAsStringAsync();
                 EnsureSuccess(response, endpoint, responseContent);
+
+                // Log temporal para debugging (solo para login)
+                if (endpoint.Contains("/auth/login"))
+                {
+                    _logger?.LogInformation("Login API Response: {Response}", responseContent);
+                }
 
                 return DeserializeResponse<TResponse>(responseContent);
             }

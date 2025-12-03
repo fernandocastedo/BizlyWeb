@@ -36,29 +36,62 @@ namespace BizlyWeb.Services
                     loginDto
                 );
 
-                if (apiResponse != null && !string.IsNullOrEmpty(apiResponse.Token) && apiResponse.Usuario != null)
+                if (apiResponse == null)
                 {
-                    // Mapear la respuesta de la API al DTO interno
-                    var response = new LoginResponseDto
-                    {
-                        Token = apiResponse.Token,
-                        UsuarioId = apiResponse.Usuario.Id,
-                        Nombre = apiResponse.Usuario.Nombre,
-                        Email = apiResponse.Usuario.Email,
-                        TipoUsuario = apiResponse.Usuario.TipoUsuario,
-                        EmpresaId = apiResponse.Usuario.EmpresaId,
-                        SucursalId = apiResponse.Usuario.SucursalId
-                    };
-
-                    SetUserSession(response);
-                    return response;
+                    throw new InvalidOperationException("La API no devolvió una respuesta válida.");
                 }
 
-                return null;
+                if (string.IsNullOrEmpty(apiResponse.Token))
+                {
+                    throw new InvalidOperationException("La API no devolvió un token válido.");
+                }
+
+                if (apiResponse.Usuario == null)
+                {
+                    throw new InvalidOperationException("La API no devolvió información del usuario.");
+                }
+
+                // Validar que el EmpresaId no esté vacío
+                if (string.IsNullOrEmpty(apiResponse.Usuario.EmpresaId))
+                {
+                    throw new InvalidOperationException("El usuario no tiene una empresa asociada. Contacta al administrador.");
+                }
+
+                // Mapear la respuesta de la API al DTO interno
+                var response = new LoginResponseDto
+                {
+                    Token = apiResponse.Token,
+                    UsuarioId = apiResponse.Usuario.Id,
+                    Nombre = apiResponse.Usuario.Nombre,
+                    Email = apiResponse.Usuario.Email,
+                    TipoUsuario = apiResponse.Usuario.TipoUsuario,
+                    EmpresaId = apiResponse.Usuario.EmpresaId,
+                    SucursalId = apiResponse.Usuario.SucursalId
+                };
+
+                SetUserSession(response);
+                
+                // Verificar que se guardó correctamente
+                var session = _httpContextAccessor.HttpContext?.Session;
+                var empresaIdGuardado = session?.GetString("EmpresaId");
+                if (string.IsNullOrEmpty(empresaIdGuardado))
+                {
+                    // Intentar obtener del token JWT como respaldo
+                    empresaIdGuardado = SessionHelper.GetEmpresaId(_httpContextAccessor);
+                    if (string.IsNullOrEmpty(empresaIdGuardado))
+                    {
+                        throw new InvalidOperationException("Error al guardar el EmpresaId en la sesión. EmpresaId recibido: " + apiResponse.Usuario.EmpresaId);
+                    }
+                }
+
+                return response;
             }
-            catch
+            catch (Exception ex)
             {
-                return null;
+                // Log del error para debugging
+                var logger = _httpContextAccessor.HttpContext?.RequestServices.GetService<ILogger<AuthService>>();
+                logger?.LogError(ex, "Error en LoginAsync: {Message}", ex.Message);
+                throw;
             }
         }
 
@@ -168,6 +201,7 @@ namespace BizlyWeb.Services
             var session = _httpContextAccessor.HttpContext?.Session;
             if (session != null && !string.IsNullOrEmpty(usuario.Token))
             {
+                // Asegurar que la sesión esté disponible
                 session.SetString("JWTToken", usuario.Token);
                 session.SetString("TipoUsuario", usuario.TipoUsuario ?? "EMPRENDEDOR");
                 session.SetString("UserName", usuario.Nombre ?? string.Empty);
@@ -178,15 +212,23 @@ namespace BizlyWeb.Services
                     session.SetString("UsuarioId", usuario.UsuarioId);
                 }
                 
+                // CRÍTICO: Guardar EmpresaId como string
                 if (!string.IsNullOrEmpty(usuario.EmpresaId))
                 {
                     session.SetString("EmpresaId", usuario.EmpresaId);
+                }
+                else
+                {
+                    throw new InvalidOperationException("El EmpresaId no puede estar vacío. El usuario debe tener una empresa asociada.");
                 }
 
                 if (!string.IsNullOrEmpty(usuario.SucursalId))
                 {
                     session.SetString("SucursalId", usuario.SucursalId);
                 }
+
+                // Forzar commit de la sesión (opcional, ASP.NET Core lo hace automáticamente)
+                // session.CommitAsync().Wait(); // Comentado porque puede causar deadlocks
             }
         }
 
