@@ -1,0 +1,127 @@
+@model List<RegistroInventarioViewModel>
+@{
+    ViewData["Title"] = "Historial de Inventario";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-history"></i> Historial de Movimientos
+                </h2>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Inventario
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtro por insumo -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Historial" class="row g-3">
+                <div class="col-md-10">
+                    <label class="form-label">Filtrar por Insumo</label>
+                    <select name="insumoId" class="form-select">
+                        <option value="">Todos los insumos</option>
+                        @if (ViewBag.Insumos != null)
+                        {
+                            @foreach (var insumo in (List<dynamic>)ViewBag.Insumos)
+                            {
+                                <option value="@insumo.Id" selected="@(ViewBag.InsumoId != null && ViewBag.InsumoId.ToString() == insumo.Id)">@insumo.Nombre</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Historial -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Insumo</th>
+                                <th>Tipo</th>
+                                <th>Cantidad Anterior</th>
+                                <th>Cantidad Nueva</th>
+                                <th>Diferencia</th>
+                                <th>Motivo</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var registro in Model)
+                            {
+                                <tr>
+                                    <td>@registro.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td><strong>@registro.InsumoNombre</strong></td>
+                                    <td>
+                                        @switch (registro.TipoMovimiento.ToLower())
+                                        {
+                                            case "entrada":
+                                                <span class="badge bg-success">Entrada</span>
+                                                break;
+                                            case "salida":
+                                                <span class="badge bg-danger">Salida</span>
+                                                break;
+                                            case "ajuste":
+                                                <span class="badge bg-info">Ajuste</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary">@registro.TipoMovimiento</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>@registro.CantidadAnterior.ToString("N2")</td>
+                                    <td>@registro.CantidadNueva.ToString("N2")</td>
+                                    <td>
+                                        @if (registro.Diferencia > 0)
+                                        {
+                                            <span class="text-success">+@registro.Diferencia.ToString("N2")</span>
+                                        }
+                                        else if (registro.Diferencia < 0)
+                                        {
+                                            <span class="text-danger">@registro.Diferencia.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">@registro.Diferencia.ToString("N2")</span>
+                                        }
+                                    </td>
+                                    <td>@registro.Motivo</td>
+                                    <td>@registro.UsuarioNombre</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No se encontraron registros de movimientos.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

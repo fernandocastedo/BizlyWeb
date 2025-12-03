@@ -1,0 +1,149 @@
+@model ConfiguracionViewModel
+@{
+    ViewData["Title"] = "Configuración del Emprendimiento";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-4">
+                    <i class="fas fa-store"></i> Perfil del Emprendimiento
+                </h5>
+
+                <div class="d-flex align-items-center mb-4">
+                    <img src="@(Model.Empresa.LogoUrl ?? "/img/placeholder-logo.svg")"
+                         alt="Logo"
+                         class="rounded-circle me-3"
+                         style="width:80px;height:80px;object-fit:cover;">
+                    <div>
+                        <h4 class="mb-1">@Model.Empresa.Nombre</h4>
+                        <p class="text-muted mb-0">@Model.Empresa.Rubro</p>
+                    </div>
+                </div>
+
+                <form asp-action="ActualizarEmpresa" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Empresa.Id" />
+                    <input type="hidden" asp-for="Empresa.LogoUrl" />
+
+                    <div class="mb-3">
+                        <label asp-for="Empresa.Nombre" class="form-label"></label>
+                        <input asp-for="Empresa.Nombre" class="form-control" />
+                        <span asp-validation-for="Empresa.Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Empresa.Rubro" class="form-label"></label>
+                        <input asp-for="Empresa.Rubro" class="form-control" />
+                        <span asp-validation-for="Empresa.Rubro" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Empresa.Descripcion" class="form-label"></label>
+                        <textarea asp-for="Empresa.Descripcion" rows="3" class="form-control"></textarea>
+                        <span asp-validation-for="Empresa.Descripcion" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Empresa.MargenGanancia" class="form-label">
+                            Margen de Ganancia (%)</label>
+                        <input asp-for="Empresa.MargenGanancia" type="number" step="0.5" min="0" class="form-control" />
+                        <span asp-validation-for="Empresa.MargenGanancia" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Logo del Emprendimiento</label>
+                        <input type="file" name="logo" class="form-control" accept="image/png,image/jpeg,image/webp" />
+                        <small class="text-muted">Formatos: PNG, JPG, WEBP. Máx 20MB.</small>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-4">
+                    <i class="fas fa-code-branch"></i> Sucursales
+                </h5>
+
+                @if (Model.Sucursales.Any())
+                {
+                    <div class="list-group mb-4">
+                        @foreach (var sucursal in Model.Sucursales)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">@sucursal.Nombre</div>
+                                    <small class="text-muted">@sucursal.Direccion - @sucursal.Ciudad (@sucursal.Departamento)</small>
+                                    @if (!string.IsNullOrWhiteSpace(sucursal.Telefono))
+                                    {
+                                        <div><small><i class="fas fa-phone"></i> @sucursal.Telefono</small></div>
+                                    }
+                                </div>
+                                <form asp-action="EliminarSucursal" method="post" class="ms-2">
+                                    <input type="hidden" name="id" value="@sucursal.Id" />
+                                    <button type="submit" class="btn btn-link text-danger" title="Eliminar"
+                                            onclick="return confirm('¿Eliminar esta sucursal?');">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        Aún no registraste sucursales. Crea la primera usando el formulario.
+                    </div>
+                }
+
+                <h6 class="mb-3">Nueva Sucursal</h6>
+                <form asp-action="CrearSucursal" method="post">
+                    <div class="mb-3">
+                        <label asp-for="NuevaSucursalNombre" class="form-label"></label>
+                        <input asp-for="NuevaSucursalNombre" class="form-control" />
+                        <span asp-validation-for="NuevaSucursalNombre" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NuevaSucursalDireccion" class="form-label"></label>
+                        <input asp-for="NuevaSucursalDireccion" class="form-control" />
+                        <span asp-validation-for="NuevaSucursalDireccion" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NuevaSucursalCiudad" class="form-label"></label>
+                        <input asp-for="NuevaSucursalCiudad" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NuevaSucursalDepartamento" class="form-label"></label>
+                        <input asp-for="NuevaSucursalDepartamento" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NuevaSucursalTelefono" class="form-label"></label>
+                        <input asp-for="NuevaSucursalTelefono" class="form-control" />
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-plus-circle"></i> Agregar Sucursal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

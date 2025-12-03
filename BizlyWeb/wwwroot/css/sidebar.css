@@ -1,0 +1,179 @@
+/* Estilos para el Sidebar */
+
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+/* Sidebar */
+.sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    transition: all 0.3s;
+    min-height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+}
+
+.sidebar.active {
+    margin-left: -250px;
+}
+
+.sidebar-header {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.sidebar-header h3 i {
+    margin-right: 10px;
+}
+
+/* Lista de navegación */
+.components {
+    padding: 20px 0;
+}
+
+.components li {
+    padding: 0;
+}
+
+.components li a {
+    padding: 15px 20px;
+    font-size: 1rem;
+    display: block;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: all 0.3s;
+    border-left: 3px solid transparent;
+}
+
+.components li a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-left: 3px solid #fff;
+}
+
+.components li a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Footer del Sidebar */
+.sidebar-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-info {
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.user-info i {
+    margin-right: 8px;
+}
+
+.logout-btn {
+    display: block;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.logout-btn i {
+    margin-right: 8px;
+}
+
+/* Contenido principal */
+.content {
+    width: 100%;
+    padding: 0;
+    min-height: 100vh;
+    transition: all 0.3s;
+    margin-left: 250px;
+}
+
+.top-navbar {
+    padding: 15px 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 0;
+}
+
+/* Botón para colapsar sidebar */
+#sidebarCollapse {
+    background: #667eea;
+    color: white;
+    border: none;
+}
+
+#sidebarCollapse:hover {
+    background: #5568d3;
+}
+
+/* Container para contenido */
+.container-fluid.p-4 {
+    background: #f8f9fa;
+    min-height: calc(100vh - 60px);
+}
+
+/* Layout para páginas de autenticación */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        margin-left: -250px;
+    }
+    
+    .sidebar.active {
+        margin-left: 0;
+    }
+    
+    .content {
+        margin-left: 0;
+    }
+    
+    #sidebarCollapse {
+        display: block;
+    }
+}
+
+@media (min-width: 769px) {
+    #sidebarCollapse {
+        display: none;
+    }
+}
+

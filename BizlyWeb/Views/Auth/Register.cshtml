@@ -1,0 +1,271 @@
+@model BizlyWeb.Models.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Registrarse";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Bizly</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .register-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+        }
+        .register-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .register-body {
+            padding: 2rem;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 0;
+        }
+        .step {
+            position: relative;
+            z-index: 1;
+            background: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border: 2px solid #e9ecef;
+            color: #6c757d;
+        }
+        .step.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+        .step.completed {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+        .step-label {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            text-align: center;
+            color: #6c757d;
+        }
+        .step.active .step-label {
+            color: #667eea;
+            font-weight: bold;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="register-container">
+                    <div class="register-header">
+                        <h2><i class="fas fa-user-plus"></i> Registrarse</h2>
+                        <p class="mb-0">Crear nueva cuenta de emprendedor</p>
+                    </div>
+                    <div class="register-body">
+                        <!-- Indicador de pasos -->
+                        <div class="step-indicator">
+                            <div class="text-center">
+                                <div class="step @(Model.PasoActual >= 1 ? "active" : "") @(Model.PasoActual > 1 ? "completed" : "")">1</div>
+                                <div class="step-label">Emprendimiento</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="step @(Model.PasoActual >= 2 ? "active" : "")">2</div>
+                                <div class="step-label">Usuario</div>
+                            </div>
+                        </div>
+
+                        @if (TempData["SuccessMessage"] != null)
+                        {
+                            <div class="alert alert-success" role="alert">
+                                @TempData["SuccessMessage"]
+                            </div>
+                        }
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <ul class="mb-0">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        <form asp-action="Register" method="post" enctype="multipart/form-data">
+                            <input type="hidden" asp-for="PasoActual" />
+
+                            <!-- Paso 1: Datos del Emprendimiento -->
+                            <div class="step-content @(Model.PasoActual == 1 ? "active" : "")">
+                                <h5 class="mb-4"><i class="fas fa-store"></i> Datos de tu Emprendimiento</h5>
+
+                                <div class="mb-3">
+                                    <label asp-for="NombreEmpresa" class="form-label"></label>
+                                    <input asp-for="NombreEmpresa" class="form-control" placeholder="Nombre de tu emprendimiento" />
+                                    <span asp-validation-for="NombreEmpresa" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Rubro" class="form-label"></label>
+                                    <input asp-for="Rubro" class="form-control" placeholder="Ej: Tecnología, Alimentación, etc." />
+                                    <span asp-validation-for="Rubro" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Descripcion" class="form-label"></label>
+                                    <textarea asp-for="Descripcion" class="form-control" rows="3" placeholder="Descripción opcional de tu emprendimiento"></textarea>
+                                    <span asp-validation-for="Descripcion" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="MargenGanancia" class="form-label"></label>
+                                    <input asp-for="MargenGanancia" type="number" step="0.1" min="0" class="form-control" />
+                                    <small class="text-muted">Porcentaje de ganancia que deseas aplicar sobre tus costos</small>
+                                    <span asp-validation-for="MargenGanancia" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="Logo" class="form-label"></label>
+                                    <input asp-for="Logo" type="file" class="form-control" accept="image/png,image/jpeg,image/webp,image/gif" />
+                                    <small class="text-muted">Formatos: JPG, PNG, GIF, WEBP. Tamaño máximo: 20MB</small>
+                                    <span asp-validation-for="Logo" class="text-danger"></span>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        Continuar <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Paso 2: Datos del Usuario -->
+                            <div class="step-content @(Model.PasoActual == 2 ? "active" : "")">
+                                <h5 class="mb-4"><i class="fas fa-user"></i> Datos de tu Cuenta</h5>
+
+                                <div class="mb-3">
+                                    <label asp-for="Nombre" class="form-label"></label>
+                                    <input asp-for="Nombre" class="form-control" placeholder="Tu nombre completo" />
+                                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label"></label>
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="tu@email.com" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Password" class="form-label"></label>
+                                    <input asp-for="Password" type="password" class="form-control" placeholder="Mínimo 6 caracteres" />
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Repite tu contraseña" />
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-secondary flex-fill" onclick="window.location.href='@Url.Action("Register")'">
+                                        <i class="fas fa-arrow-left"></i> Volver
+                                    </button>
+                                    <button type="submit" class="btn btn-primary flex-fill">
+                                        <i class="fas fa-check"></i> Crear Cuenta
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                ¿Ya tienes cuenta? <a href="@Url.Action("Login")" class="text-decoration-none">Inicia sesión aquí</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

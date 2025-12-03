@@ -1,0 +1,125 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+/* Estilos para páginas de autenticación */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.auth-container .row {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.auth-container .card {
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.auth-container .card-body {
+  background: white;
+}
+
+.auth-container .form-control {
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  padding: 12px 15px;
+  font-size: 15px;
+  transition: all 0.3s;
+}
+
+.auth-container .form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.auth-container .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.auth-container .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.auth-container .btn-outline-primary {
+  border-color: #667eea;
+  color: #667eea;
+  border-radius: 8px;
+  padding: 10px 20px;
+  transition: all 0.3s;
+}
+
+.auth-container .btn-outline-primary:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.auth-container .form-label {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.auth-container .form-label i {
+  margin-right: 8px;
+  color: #667eea;
+}
+
+.auth-container .text-primary {
+  color: #667eea !important;
+}
+
+.auth-container h2 {
+  color: #333;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.auth-container .text-muted {
+  color: #6c757d !important;
+  font-size: 14px;
+}
+
+.auth-container .alert {
+  border-radius: 8px;
+  border: none;
+}
+
+.auth-container hr {
+  border-color: #e0e0e0;
+  opacity: 0.5;
+}

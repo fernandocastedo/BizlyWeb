@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Bizly</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/BizlyWeb.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+    @{
+        // Verificar si el usuario está autenticado (tiene token en sesión)
+        var isAuthenticated = Context.Session.GetString("JWTToken") != null;
+    }
+
+    @if (isAuthenticated)
+    {
+        <!-- Layout con Sidebar para usuarios autenticados -->
+        <div class="wrapper">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-store"></i> Bizly</h3>
+                </div>
+
+                <ul class="list-unstyled components">
+                    <li>
+                        <a asp-controller="Dashboard" asp-action="Index">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Configuracion" asp-action="Index">
+                            <i class="fas fa-cog"></i> Configuración
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Inventario" asp-action="Index">
+                            <i class="fas fa-boxes"></i> Inventario
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Productos" asp-action="Index">
+                            <i class="fas fa-shopping-bag"></i> Productos
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Ventas" asp-action="Index">
+                            <i class="fas fa-cash-register"></i> Ventas
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Clientes" asp-action="Index">
+                            <i class="fas fa-users"></i> Clientes
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="CostosGastos" asp-action="Index">
+                            <i class="fas fa-money-bill-wave"></i> Costos y Gastos
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Trabajadores" asp-action="Index">
+                            <i class="fas fa-user-tie"></i> Trabajadores
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Reportes" asp-action="Index">
+                            <i class="fas fa-chart-bar"></i> Reportes
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Categorias" asp-action="Index">
+                            <i class="fas fa-tags"></i> Categorías
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="sidebar-footer">
+                    <div class="user-info">
+                        <i class="fas fa-user-circle"></i>
+                        <span>@(Context.Session.GetString("UserName") ?? "Usuario")</span>
+                    </div>
+                    <a asp-controller="Auth" asp-action="Logout" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Page Content -->
+            <div id="content" class="content">
+                <nav class="navbar navbar-expand-lg navbar-light bg-light top-navbar">
+                    <div class="container-fluid">
+                        <button type="button" id="sidebarCollapse" class="btn btn-info">
+                            <i class="fas fa-align-left"></i>
+                        </button>
+                        <h4 class="mb-0 ms-3">@ViewData["Title"]</h4>
+                    </div>
+                </nav>
+
+                <div class="container-fluid p-4">
+                    <!-- Mensajes de éxito y error -->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    @if (TempData["InfoMessage"] != null)
+                    {
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fas fa-info-circle"></i> @TempData["InfoMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    @if (TempData["WarningMessage"] != null)
+                    {
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle"></i> @TempData["WarningMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Layout sin Sidebar para páginas de autenticación -->
+        <div class="auth-container">
+            @RenderBody()
+        </div>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

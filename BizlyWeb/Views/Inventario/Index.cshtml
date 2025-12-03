@@ -1,0 +1,207 @@
+@model InventarioIndexViewModel
+@{
+    ViewData["Title"] = "Inventario";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-boxes"></i> Inventario
+                </h2>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Insumo
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.InsumosStockBajo > 0)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Atención:</strong> Tienes @Model.InsumosStockBajo insumo(s) con stock bajo.
+            <a asp-action="Index" asp-route-soloStockBajo="true" class="alert-link">Ver insumos con stock bajo</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Index" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" name="nombre" class="form-control" value="@Model.FiltroNombre" placeholder="Buscar por nombre...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Categoría</label>
+                    <select name="categoriaId" class="form-select">
+                        <option value="">Todas</option>
+                        @foreach (var categoria in Model.Categorias)
+                        {
+                            <option value="@categoria.Id" selected="@(Model.FiltroCategoriaId == categoria.Id)">@categoria.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Sucursal</label>
+                    <select name="sucursalId" class="form-select">
+                        <option value="">Todas</option>
+                        @foreach (var sucursal in Model.Sucursales)
+                        {
+                            <option value="@sucursal.Id" selected="@(Model.FiltroSucursalId == sucursal.Id)">@sucursal.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Estado</label>
+                    <div class="form-check">
+                        <input type="checkbox" name="soloStockBajo" value="true" class="form-check-input" id="soloStockBajo" checked="@Model.FiltroSoloStockBajo">
+                        <label class="form-check-label" for="soloStockBajo">Solo stock bajo</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="soloActivos" value="true" class="form-check-input" id="soloActivos" checked="@Model.FiltroSoloActivos">
+                        <label class="form-check-label" for="soloActivos">Solo activos</label>
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Insumos</h5>
+                    <h3 class="text-primary">@Model.TotalInsumos</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Stock Bajo</h5>
+                    <h3 class="text-warning">@Model.InsumosStockBajo</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Activos</h5>
+                    <h3 class="text-success">@Model.Insumos.Count(i => i.Activo)</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Insumos -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (Model.Insumos.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Cantidad</th>
+                                <th>Unidad</th>
+                                <th>Stock Mínimo</th>
+                                <th>Precio Unitario</th>
+                                <th>Precio Total</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var insumo in Model.Insumos)
+                            {
+                                <tr class="@(insumo.StockBajo ? "table-warning" : "")">
+                                    <td>
+                                        <strong>@insumo.Nombre</strong>
+                                        @if (!string.IsNullOrEmpty(insumo.Descripcion))
+                                        {
+                                            <br><small class="text-muted">@insumo.Descripcion</small>
+                                        }
+                                    </td>
+                                    <td>@(insumo.CategoriaNombre ?? "Sin categoría")</td>
+                                    <td>
+                                        <span class="@(insumo.StockBajo ? "text-danger fw-bold" : "")">
+                                            @insumo.Cantidad.ToString("N2")
+                                        </span>
+                                    </td>
+                                    <td>@insumo.UnidadMedida</td>
+                                    <td>@insumo.StockMinimo.ToString("N2")</td>
+                                    <td>@insumo.PrecioUnitario.ToString("C")</td>
+                                    <td>@insumo.PrecioTotal.ToString("C")</td>
+                                    <td>
+                                        @if (insumo.Activo)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                        @if (insumo.StockBajo)
+                                        {
+                                            <span class="badge bg-warning">Stock Bajo</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Edit" asp-route-id="@insumo.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="ActualizarStock" asp-route-id="@insumo.Id" class="btn btn-sm btn-outline-info" title="Actualizar Stock">
+                                                <i class="fas fa-warehouse"></i>
+                                            </a>
+                                            <a asp-action="Historial" asp-route-insumoId="@insumo.Id" class="btn btn-sm btn-outline-secondary" title="Historial">
+                                                <i class="fas fa-history"></i>
+                                            </a>
+                                            <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este insumo?');">
+                                                <input type="hidden" name="id" value="@insumo.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No se encontraron insumos.</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primer Insumo
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
