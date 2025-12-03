@@ -28,7 +28,7 @@
                         <option value="">Todos los insumos</option>
                         @if (ViewBag.Insumos != null)
                         {
-                            @foreach (var insumo in (List<dynamic>)ViewBag.Insumos)
+                            @foreach (InsumoViewModel insumo in (List<InsumoViewModel>)ViewBag.Insumos)
                             {
                                 <option value="@insumo.Id" selected="@(ViewBag.InsumoId != null && ViewBag.InsumoId.ToString() == insumo.Id)">@insumo.Nombre</option>
                             }

@@ -543,7 +543,11 @@ namespace BizlyWeb.Controllers
                 }).OrderByDescending(r => r.CreatedAt).ToList();
 
                 ViewBag.InsumoId = insumoId;
-                ViewBag.Insumos = insumos.Select(i => new { i.Id, i.Nombre }).ToList();
+                ViewBag.Insumos = insumos.Select(i => new InsumoViewModel
+                {
+                    Id = i.Id,
+                    Nombre = i.Nombre
+                }).ToList();
 
                 return View(viewModel);
             }
