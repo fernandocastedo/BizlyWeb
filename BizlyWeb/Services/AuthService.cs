@@ -31,13 +31,25 @@ namespace BizlyWeb.Services
 
             try
             {
-                var response = await _apiService.PostAsync<LoginDto, LoginResponseDto>(
+                var apiResponse = await _apiService.PostAsync<LoginDto, LoginApiResponseDto>(
                     "/api/auth/login",
                     loginDto
                 );
 
-                if (response != null && !string.IsNullOrEmpty(response.Token))
+                if (apiResponse != null && !string.IsNullOrEmpty(apiResponse.Token) && apiResponse.Usuario != null)
                 {
+                    // Mapear la respuesta de la API al DTO interno
+                    var response = new LoginResponseDto
+                    {
+                        Token = apiResponse.Token,
+                        UsuarioId = apiResponse.Usuario.Id,
+                        Nombre = apiResponse.Usuario.Nombre,
+                        Email = apiResponse.Usuario.Email,
+                        TipoUsuario = apiResponse.Usuario.TipoUsuario,
+                        EmpresaId = apiResponse.Usuario.EmpresaId,
+                        SucursalId = apiResponse.Usuario.SucursalId
+                    };
+
                     SetUserSession(response);
                     return response;
                 }
@@ -77,21 +89,74 @@ namespace BizlyWeb.Services
 
             try
             {
-                var response = await _apiService.PostAsync<RegisterDto, RegisterResponseDto>(
+                // La API devuelve un objeto con "usuario" anidado
+                var apiResponse = await _apiService.PostAsync<RegisterDto, RegisterApiResponseDto>(
                     "/api/auth/registro-emprendedor",
                     registerDto
                 );
 
-                if (response != null && response.Success && response.Usuario != null)
+                if (apiResponse != null && apiResponse.Usuario != null)
                 {
-                    SetUserSession(response.Usuario);
+                    // Después del registro, hacer login automático para obtener el token
+                    var loginResponse = await LoginAsync(email, password);
+                    
+                    if (loginResponse != null)
+                    {
+                        return new RegisterResponseDto
+                        {
+                            Success = true,
+                            Message = "Registro exitoso",
+                            Usuario = loginResponse
+                        };
+                    }
+                    else
+                    {
+                        // Si el login falla, al menos guardar los datos básicos
+                        var usuarioResponse = new LoginResponseDto
+                        {
+                            Token = null,
+                            UsuarioId = apiResponse.Usuario.Id,
+                            Nombre = apiResponse.Usuario.Nombre,
+                            Email = apiResponse.Usuario.Email,
+                            TipoUsuario = apiResponse.Usuario.TipoUsuario,
+                            EmpresaId = apiResponse.Usuario.EmpresaId,
+                            SucursalId = apiResponse.Usuario.SucursalId
+                        };
+
+                        var session = _httpContextAccessor.HttpContext?.Session;
+                        if (session != null)
+                        {
+                            session.SetString("TipoUsuario", usuarioResponse.TipoUsuario ?? "EMPRENDEDOR");
+                            session.SetString("UserName", usuarioResponse.Nombre ?? string.Empty);
+                            session.SetString("UserEmail", usuarioResponse.Email ?? string.Empty);
+                            if (!string.IsNullOrEmpty(usuarioResponse.UsuarioId))
+                            {
+                                session.SetString("UsuarioId", usuarioResponse.UsuarioId);
+                            }
+                            if (!string.IsNullOrEmpty(usuarioResponse.EmpresaId))
+                            {
+                                session.SetString("EmpresaId", usuarioResponse.EmpresaId);
+                            }
+                            if (!string.IsNullOrEmpty(usuarioResponse.SucursalId))
+                            {
+                                session.SetString("SucursalId", usuarioResponse.SucursalId);
+                            }
+                        }
+
+                        return new RegisterResponseDto
+                        {
+                            Success = true,
+                            Message = "Registro exitoso. Por favor, inicia sesión.",
+                            Usuario = usuarioResponse
+                        };
+                    }
                 }
 
-                return response;
+                return new RegisterResponseDto { Success = false, Message = "No se pudo completar el registro" };
             }
             catch
             {
-                return null;
+                return new RegisterResponseDto { Success = false, Message = "Error al registrar" };
             }
         }
 

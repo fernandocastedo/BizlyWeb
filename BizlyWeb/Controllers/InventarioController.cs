@@ -11,15 +11,18 @@ namespace BizlyWeb.Controllers
     {
         private readonly InventarioService _inventarioService;
         private readonly SucursalService _sucursalService;
+        private readonly EmpresaService _empresaService;
         private readonly ILogger<InventarioController> _logger;
 
         public InventarioController(
             InventarioService inventarioService,
             SucursalService sucursalService,
+            EmpresaService empresaService,
             ILogger<InventarioController> logger)
         {
             _inventarioService = inventarioService;
             _sucursalService = sucursalService;
+            _empresaService = empresaService;
             _logger = logger;
         }
 
@@ -126,8 +129,21 @@ namespace BizlyWeb.Controllers
         {
             try
             {
+                // Verificar que el usuario tenga empresa asociada
+                var empresa = await _empresaService.ObtenerEmpresaActualAsync();
+                if (empresa == null)
+                {
+                    TempData["ErrorMessage"] = "No se pudo obtener la información de tu empresa. Por favor, cierra sesión e inicia sesión nuevamente.";
+                    return RedirectToAction("Login", "Auth");
+                }
+
                 var categorias = await _inventarioService.ObtenerCategoriasAsync();
                 var sucursales = await _sucursalService.ObtenerSucursalesAsync();
+
+                if (!sucursales.Any())
+                {
+                    TempData["WarningMessage"] = "No tienes sucursales creadas. Por favor, crea al menos una sucursal en la sección de Configuración antes de crear insumos.";
+                }
 
                 ViewBag.Categorias = categorias.Select(c => new CategoriaViewModel
                 {
@@ -182,6 +198,20 @@ namespace BizlyWeb.Controllers
 
             try
             {
+                // Validar que haya sucursales disponibles
+                var sucursales = await _sucursalService.ObtenerSucursalesAsync();
+                if (!sucursales.Any())
+                {
+                    TempData["ErrorMessage"] = "No hay sucursales disponibles. Por favor, crea una sucursal primero en la sección de Configuración.";
+                    return RedirectToAction(nameof(Create));
+                }
+
+                // Si no se especificó sucursal, usar la primera disponible
+                if (string.IsNullOrEmpty(sucursalId))
+                {
+                    sucursalId = sucursales.First().Id;
+                }
+
                 var dto = new InsumoDto
                 {
                     CategoriaId = string.IsNullOrEmpty(model.CategoriaId) ? null : model.CategoriaId,
@@ -204,6 +234,18 @@ namespace BizlyWeb.Controllers
                 else
                 {
                     TempData["ErrorMessage"] = "No se pudo crear el insumo.";
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Error de negocio al crear insumo");
+                TempData["ErrorMessage"] = ex.Message;
+                
+                // Si es un error de empresa, redirigir al login
+                if (ex.Message.Contains("empresa actual"))
+                {
+                    TempData["ErrorMessage"] = "No se pudo obtener la información de tu empresa. Por favor, cierra sesión e inicia sesión nuevamente.";
+                    return RedirectToAction("Login", "Auth");
                 }
             }
             catch (Exception ex)

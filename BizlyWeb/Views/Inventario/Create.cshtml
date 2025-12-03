@@ -85,8 +85,9 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Sucursal</label>
-                                <select name="sucursalId" class="form-select">
+                                <label class="form-label">Sucursal *</label>
+                                <select name="sucursalId" class="form-select" required>
+                                    <option value="">Seleccione una sucursal...</option>
                                     @if (ViewBag.Sucursales != null)
                                     {
                                         @foreach (var sucursal in (List<SucursalViewModel>)ViewBag.Sucursales)
@@ -95,6 +96,7 @@
                                         }
                                     }
                                 </select>
+                                <small class="form-text text-muted">Si no tienes sucursales, créalas en la sección de Configuración</small>
                             </div>
                         </div>
 
