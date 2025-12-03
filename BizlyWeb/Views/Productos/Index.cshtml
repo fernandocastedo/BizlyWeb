@@ -1,0 +1,171 @@
+@model ProductoIndexViewModel
+@{
+    ViewData["Title"] = "Productos de Venta";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-shopping-bag"></i> Productos de Venta
+                </h2>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Producto
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Index" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" name="nombre" class="form-control" value="@Model.FiltroNombre" placeholder="Buscar por nombre...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Categoría</label>
+                    <select name="categoriaId" class="form-select">
+                        <option value="">Todas</option>
+                        @foreach (var categoria in Model.Categorias)
+                        {
+                            <option value="@categoria.Id" selected="@(Model.FiltroCategoriaId == categoria.Id)">@categoria.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Estado</label>
+                    <div class="form-check">
+                        <input type="checkbox" name="soloActivos" value="true" class="form-check-input" id="soloActivos" checked="@Model.FiltroSoloActivos">
+                        <label class="form-check-label" for="soloActivos">Solo activos</label>
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Productos</h5>
+                    <h3 class="text-primary">@Model.TotalProductos</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Activos</h5>
+                    <h3 class="text-success">@Model.Productos.Count(p => p.Activo)</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Productos -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (Model.Productos.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio de Venta</th>
+                                <th>Precio Sugerido</th>
+                                <th>Diferencia</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var producto in Model.Productos)
+                            {
+                                var diferencia = producto.PrecioVenta - producto.PrecioSugerido;
+                                <tr>
+                                    <td>
+                                        <strong>@producto.Nombre</strong>
+                                        @if (!string.IsNullOrEmpty(producto.Descripcion))
+                                        {
+                                            <br><small class="text-muted">@producto.Descripcion</small>
+                                        }
+                                    </td>
+                                    <td>@(producto.CategoriaNombre ?? "Sin categoría")</td>
+                                    <td><strong>@producto.PrecioVenta.ToString("C")</strong></td>
+                                    <td>@producto.PrecioSugerido.ToString("C")</td>
+                                    <td>
+                                        @if (diferencia > 0)
+                                        {
+                                            <span class="text-success">+@diferencia.ToString("C")</span>
+                                        }
+                                        else if (diferencia < 0)
+                                        {
+                                            <span class="text-danger">@diferencia.ToString("C")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">@diferencia.ToString("C")</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (producto.Activo)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Edit" asp-route-id="@producto.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este producto?');">
+                                                <input type="hidden" name="id" value="@producto.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No se encontraron productos.</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primer Producto
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

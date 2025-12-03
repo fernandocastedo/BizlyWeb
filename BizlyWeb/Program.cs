@@ -53,6 +53,8 @@ builder.Services.AddScoped<FileService>();
 builder.Services.AddScoped<EmpresaService>();
 builder.Services.AddScoped<SucursalService>();
 builder.Services.AddScoped<InventarioService>();
+builder.Services.AddScoped<ProductoService>();
+builder.Services.AddScoped<VentaService>();
 
 var app = builder.Build();
 

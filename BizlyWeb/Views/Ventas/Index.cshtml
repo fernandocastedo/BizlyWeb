@@ -1,0 +1,227 @@
+@model VentaIndexViewModel
+@{
+    ViewData["Title"] = "Historial de Ventas";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-cash-register"></i> Historial de Ventas
+                </h2>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nueva Venta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ventas</h5>
+                    <h3 class="text-primary">@Model.TotalVentas</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ingresos</h5>
+                    <h3 class="text-success">@Model.TotalIngresos.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Pedidos Pendientes</h5>
+                    <h3 class="text-warning">@Model.Ventas.Count(v => v.EstadoPedido == "pendiente")</h3>
+                    <a asp-action="PedidosPendientes" class="btn btn-sm btn-outline-warning mt-2">Ver</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Index" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Fecha Inicio</label>
+                    <input type="date" name="fechaInicio" class="form-control" value="@(Model.FiltroFechaInicio?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fecha Fin</label>
+                    <input type="date" name="fechaFin" class="form-control" value="@(Model.FiltroFechaFin?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Estado Pedido</label>
+                    <select name="estadoPedido" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="pendiente" selected="@(Model.FiltroEstadoPedido == "pendiente")">Pendiente</option>
+                        <option value="completado" selected="@(Model.FiltroEstadoPedido == "completado")">Completado</option>
+                        <option value="cancelado" selected="@(Model.FiltroEstadoPedido == "cancelado")">Cancelado</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Estado Pago</label>
+                    <select name="estadoPago" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="pagado" selected="@(Model.FiltroEstadoPago == "pagado")">Pagado</option>
+                        <option value="pendiente" selected="@(Model.FiltroEstadoPago == "pendiente")">Pendiente</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Top Vendedores -->
+    @if (Model.TopVendedores.Any())
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-trophy"></i> Top Vendedores</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Vendedor</th>
+                                <th>Total Ventas</th>
+                                <th>Total Ingresos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.TopVendedores.Count; i++)
+                            {
+                                <tr>
+                                    <td><strong>@(i + 1)</strong></td>
+                                    <td>@Model.TopVendedores[i].UsuarioNombre</td>
+                                    <td>@Model.TopVendedores[i].TotalVentas</td>
+                                    <td>@Model.TopVendedores[i].TotalIngresos.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Tabla de Ventas -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (Model.Ventas.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Productos</th>
+                                <th>Total</th>
+                                <th>Método Pago</th>
+                                <th>Estado Pedido</th>
+                                <th>Estado Pago</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var venta in Model.Ventas)
+                            {
+                                <tr>
+                                    <td>@venta.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@(venta.ClienteNombre ?? "Sin cliente")</td>
+                                    <td>
+                                        @venta.Detalles.Count producto(s)
+                                        @if (venta.EsEnvio)
+                                        {
+                                            <span class="badge bg-info">Envío</span>
+                                        }
+                                    </td>
+                                    <td><strong>@venta.Total.ToString("C")</strong></td>
+                                    <td>@venta.MetodoPago</td>
+                                    <td>
+                                        @switch (venta.EstadoPedido)
+                                        {
+                                            case "pendiente":
+                                                <span class="badge bg-warning">Pendiente</span>
+                                                break;
+                                            case "completado":
+                                                <span class="badge bg-success">Completado</span>
+                                                break;
+                                            case "cancelado":
+                                                <span class="badge bg-danger">Cancelado</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary">@venta.EstadoPedido</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (venta.EstadoPago == "pagado")
+                                        {
+                                            <span class="badge bg-success">Pagado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">Pendiente</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Detalle" asp-route-id="@venta.Id" class="btn btn-sm btn-outline-info" title="Ver Detalle">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if (venta.EstadoPedido != "cancelado")
+                                            {
+                                                <form asp-action="Cancelar" method="post" class="d-inline" onsubmit="return confirm('¿Estás seguro de cancelar esta venta? El stock será devuelto al inventario.');">
+                                                    <input type="hidden" name="id" value="@venta.Id" />
+                                                    <input type="hidden" name="motivo" value="Cancelación manual" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancelar">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-cash-register fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No se encontraron ventas.</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primera Venta
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

@@ -1,0 +1,155 @@
+@model ProductoVentaViewModel
+@{
+    ViewData["Title"] = "Crear Producto";
+    Layout = "_Layout";
+    var insumos = ViewBag.Insumos as List<dynamic> ?? new List<dynamic>();
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 col-lg-10 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus"></i> Crear Nuevo Producto
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="productoForm">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Nombre" class="form-label">Nombre *</label>
+                                <input asp-for="Nombre" class="form-control" required />
+                                <span asp-validation-for="Nombre" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CategoriaId" class="form-label">Categoría</label>
+                                <select asp-for="CategoriaId" class="form-select">
+                                    <option value="">Sin categoría</option>
+                                    @if (ViewBag.Categorias != null)
+                                    {
+                                        @foreach (var categoria in (List<CategoriaViewModel>)ViewBag.Categorias)
+                                        {
+                                            <option value="@categoria.Id">@categoria.Nombre</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="CategoriaId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Descripcion" class="form-label">Descripción</label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PrecioVenta" class="form-label">Precio de Venta *</label>
+                                <input asp-for="PrecioVenta" type="number" step="0.01" min="0" class="form-control" required />
+                                <span asp-validation-for="PrecioVenta" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Precio Sugerido</label>
+                                <input type="text" id="precioSugerido" class="form-control" readonly value="0.00" />
+                                <small class="text-muted">Se calcula automáticamente según los insumos y margen de ganancia</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input asp-for="Activo" class="form-check-input" type="checkbox" checked />
+                                <label asp-for="Activo" class="form-check-label">
+                                    Producto activo
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h5 class="mb-3">
+                            <i class="fas fa-boxes"></i> Insumos del Producto
+                        </h5>
+
+                        <div id="insumosContainer">
+                            <!-- Los insumos se agregarán dinámicamente aquí -->
+                        </div>
+
+                        <button type="button" class="btn btn-outline-primary mb-3" id="agregarInsumoBtn">
+                            <i class="fas fa-plus"></i> Agregar Insumo
+                        </button>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Crear Producto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        const insumos = @Html.Raw(Json.Serialize(insumos));
+        let insumoIndex = 0;
+
+        function agregarFilaInsumo(insumoId = '', cantidad = 0) {
+            const container = document.getElementById('insumosContainer');
+            const div = document.createElement('div');
+            div.className = 'row mb-2 insumo-row';
+            div.innerHTML = `
+                <div class="col-md-5">
+                    <select name="insumoIds" class="form-select insumo-select" required>
+                        <option value="">Seleccione un insumo...</option>
+                        ${insumos.map(i => `<option value="${i.Id}" ${i.Id === insumoId ? 'selected' : ''}>${i.Nombre} (${i.UnidadMedida}) - Stock: ${i.Cantidad}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="cantidades" step="0.01" min="0" class="form-control cantidad-input" placeholder="Cantidad utilizada" value="${cantidad}" required />
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-danger btn-sm eliminar-insumo">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+
+            // Event listener para eliminar
+            div.querySelector('.eliminar-insumo').addEventListener('click', function() {
+                div.remove();
+                calcularPrecioSugerido();
+            });
+
+            // Event listener para recalcular precio
+            div.querySelector('.cantidad-input').addEventListener('input', calcularPrecioSugerido);
+            div.querySelector('.insumo-select').addEventListener('change', calcularPrecioSugerido);
+        }
+
+        function calcularPrecioSugerido() {
+            // Esta función se implementará cuando se cree el producto
+            // Por ahora solo mostramos 0
+            document.getElementById('precioSugerido').value = '0.00';
+        }
+
+        document.getElementById('agregarInsumoBtn').addEventListener('click', function() {
+            agregarFilaInsumo();
+        });
+
+        // Agregar una fila inicial
+        agregarFilaInsumo();
+    </script>
+}
+

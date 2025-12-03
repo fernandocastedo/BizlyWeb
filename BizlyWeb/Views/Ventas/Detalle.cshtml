@@ -1,0 +1,120 @@
+@model VentaViewModel
+@{
+    ViewData["Title"] = "Detalle de Venta";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-receipt"></i> Detalle de Venta
+                </h2>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Historial
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Venta #@Model.Id</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p><strong>Cliente:</strong> @(Model.ClienteNombre ?? "Sin cliente")</p>
+                            <p><strong>Método de Pago:</strong> @Model.MetodoPago</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Estado Pedido:</strong>
+                                @switch (Model.EstadoPedido)
+                                {
+                                    case "pendiente":
+                                        <span class="badge bg-warning">Pendiente</span>
+                                        break;
+                                    case "completado":
+                                        <span class="badge bg-success">Completado</span>
+                                        break;
+                                    case "cancelado":
+                                        <span class="badge bg-danger">Cancelado</span>
+                                        break;
+                                }
+                            </p>
+                            <p><strong>Estado Pago:</strong>
+                                @if (Model.EstadoPago == "pagado")
+                                {
+                                    <span class="badge bg-success">Pagado</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">Pendiente</span>
+                                }
+                            </p>
+                            @if (Model.EsEnvio)
+                            {
+                                <p><strong><span class="badge bg-info">Envío</span></strong></p>
+                            }
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <h5 class="mb-3">Productos</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var detalle in Model.Detalles)
+                                {
+                                    <tr>
+                                        <td>@detalle.ProductoNombre</td>
+                                        <td>@detalle.Cantidad</td>
+                                        <td>@detalle.PrecioUnitario.ToString("C")</td>
+                                        <td>@detalle.Subtotal.ToString("C")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-end">Total:</th>
+                                    <th>@Model.Total.ToString("C")</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    @if (Model.EstadoPedido != "cancelado")
+                    {
+                        <div class="mt-4">
+                            <form asp-action="Cancelar" method="post" onsubmit="return confirm('¿Estás seguro de cancelar esta venta? El stock será devuelto al inventario.');">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <input type="hidden" name="motivo" value="Cancelación manual" />
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-times"></i> Cancelar Venta
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
