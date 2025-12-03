@@ -1,0 +1,186 @@
+@model CostoGastoIndexViewModel
+@{
+    ViewData["Title"] = "Costos y Gastos";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-money-bill-wave"></i> Costos y Gastos
+                </h2>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Costo/Gasto
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas de Incremento (RF-37) -->
+    @if (Model.AlertasIncremento.Any())
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <h5><i class="fas fa-exclamation-triangle"></i> Alertas de Incremento de Costos</h5>
+            <ul class="mb-0">
+                @foreach (var alerta in Model.AlertasIncremento)
+                {
+                    <li>
+                        <strong>@alerta.Categoria:</strong> Incremento del @alerta.PorcentajeIncremento.ToString("F2")% 
+                        (Mes anterior: @alerta.MontoAnterior.ToString("C"), Mes actual: @alerta.MontoActual.ToString("C"))
+                    </li>
+                }
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Resumen -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total</h5>
+                    <h3 class="text-primary">@Model.TotalCostosGastos.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Directos</h5>
+                    <h4 class="text-info">@Model.TotalDirectos.ToString("C")</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Administrativos</h5>
+                    <h4 class="text-secondary">@Model.TotalAdministrativos.ToString("C")</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Fijos</h5>
+                    <h4 class="text-success">@Model.TotalFijos.ToString("C")</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Variables</h5>
+                    <h4 class="text-warning">@Model.TotalVariables.ToString("C")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros (RF-36) -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Index" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Fecha Inicio</label>
+                    <input type="date" name="fechaInicio" class="form-control" value="@(Model.FiltroFechaInicio?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fecha Fin</label>
+                    <input type="date" name="fechaFin" class="form-control" value="@(Model.FiltroFechaFin?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Categoría Financiera</label>
+                    <select name="categoriaFinanciera" class="form-select">
+                        <option value="">Todas</option>
+                        <option value="DIRECTO" selected="@(Model.FiltroCategoriaFinanciera == "DIRECTO")">Directo</option>
+                        <option value="ADMINISTRATIVO" selected="@(Model.FiltroCategoriaFinanciera == "ADMINISTRATIVO")">Administrativo</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Clasificación</label>
+                    <select name="clasificacion" class="form-select">
+                        <option value="">Todas</option>
+                        <option value="FIJO" selected="@(Model.FiltroClasificacion == "FIJO")">Fijo</option>
+                        <option value="VARIABLE" selected="@(Model.FiltroClasificacion == "VARIABLE")">Variable</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Costos y Gastos -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Lista de Costos y Gastos (@Model.CostosGastos.Count)</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.CostosGastos.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th>Monto</th>
+                                <th>Categoría</th>
+                                <th>Clasificación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var costoGasto in Model.CostosGastos)
+                            {
+                                <tr>
+                                    <td>@costoGasto.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td>@costoGasto.Descripcion</td>
+                                    <td><strong>@costoGasto.Monto.ToString("C")</strong></td>
+                                    <td>
+                                        <span class="badge @(costoGasto.CategoriaFinanciera == "DIRECTO" ? "bg-info" : "bg-secondary")">
+                                            @costoGasto.CategoriaFinanciera
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(costoGasto.Clasificacion == "FIJO" ? "bg-success" : "bg-warning")">
+                                            @costoGasto.Clasificacion
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a asp-action="Edit" asp-route-id="@costoGasto.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@costoGasto.Id" method="post" class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este costo/gasto?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No se encontraron costos y gastos. <a asp-action="Create">Registrar primer costo/gasto</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

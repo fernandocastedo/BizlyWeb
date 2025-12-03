@@ -56,6 +56,8 @@ builder.Services.AddScoped<InventarioService>();
 builder.Services.AddScoped<ProductoService>();
 builder.Services.AddScoped<VentaService>();
 builder.Services.AddScoped<ClienteService>();
+builder.Services.AddScoped<CostoGastoService>();
+builder.Services.AddScoped<TrabajadorService>();
 
 var app = builder.Build();
 

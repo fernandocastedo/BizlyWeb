@@ -1,0 +1,138 @@
+@model TrabajadorViewModel
+@{
+    ViewData["Title"] = "Editar Trabajador";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit"></i> Editar Trabajador
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Nombre" class="form-label">Nombre *</label>
+                            <input asp-for="Nombre" class="form-control" required />
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Cargo" class="form-label">Cargo *</label>
+                                <input asp-for="Cargo" class="form-control" required />
+                                <span asp-validation-for="Cargo" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SueldoMensual" class="form-label">Sueldo Mensual *</label>
+                                <input asp-for="SueldoMensual" type="number" step="0.01" min="0.01" class="form-control" required />
+                                <span asp-validation-for="SueldoMensual" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TipoGasto" class="form-label">Tipo de Gasto *</label>
+                                <select asp-for="TipoGasto" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="fijo" selected="@(Model.TipoGasto == "fijo")">Fijo</option>
+                                    <option value="variable" selected="@(Model.TipoGasto == "variable")">Variable</option>
+                                </select>
+                                <span asp-validation-for="TipoGasto" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SucursalId" class="form-label">Sucursal (Opcional)</label>
+                                <select asp-for="SucursalId" class="form-select">
+                                    <option value="">Sin sucursal específica</option>
+                                    @foreach (var sucursal in Model.Sucursales)
+                                    {
+                                        <option value="@sucursal.Id" selected="@(Model.SucursalId == sucursal.Id)">@sucursal.Nombre - @sucursal.Ciudad</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="SucursalId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        @if (Model.TieneUsuario)
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Este trabajador tiene un usuario asociado.
+                                Estado: <strong>@(Model.UsuarioActivo ? "Activo" : "Inactivo")</strong>
+                            </div>
+                        }
+                        else
+                        {
+                            <hr class="my-4" />
+                            <h5>Crear Usuario para el Trabajador (Opcional)</h5>
+                            <p class="text-muted">Este trabajador aún no tiene un usuario. Puedes crear uno ahora.</p>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input asp-for="CrearUsuario" class="form-check-input" type="checkbox" id="crearUsuario" />
+                                    <label class="form-check-label" for="crearUsuario">
+                                        Crear usuario para este trabajador
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="usuarioFields" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="EmailUsuario" class="form-label">Email *</label>
+                                        <input asp-for="EmailUsuario" type="email" class="form-control" />
+                                        <span asp-validation-for="EmailUsuario" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="PasswordUsuario" class="form-label">Contraseña *</label>
+                                        <input asp-for="PasswordUsuario" type="password" class="form-control" />
+                                        <span asp-validation-for="PasswordUsuario" class="text-danger"></span>
+                                        <small class="form-text text-muted">Mínimo 6 caracteres</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @if (!Model.TieneUsuario)
+    {
+        <script>
+            document.getElementById('crearUsuario').addEventListener('change', function() {
+                document.getElementById('usuarioFields').style.display = this.checked ? 'block' : 'none';
+                if (this.checked) {
+                    document.querySelector('[name="EmailUsuario"]').required = true;
+                    document.querySelector('[name="PasswordUsuario"]').required = true;
+                } else {
+                    document.querySelector('[name="EmailUsuario"]').required = false;
+                    document.querySelector('[name="PasswordUsuario"]').required = false;
+                }
+            });
+        </script>
+    }
+}
+

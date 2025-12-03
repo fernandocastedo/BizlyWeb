@@ -1,0 +1,114 @@
+@model TrabajadorIndexViewModel
+@{
+    ViewData["Title"] = "Trabajadores";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-user-tie"></i> Trabajadores
+                </h2>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Trabajador
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Trabajadores -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Lista de Trabajadores (@Model.Trabajadores.Count)</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Trabajadores.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Cargo</th>
+                                <th>Sueldo Mensual</th>
+                                <th>Tipo de Gasto</th>
+                                <th>Usuario</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var trabajador in Model.Trabajadores)
+                            {
+                                <tr>
+                                    <td><strong>@trabajador.Nombre</strong></td>
+                                    <td>@trabajador.Cargo</td>
+                                    <td>@trabajador.SueldoMensual.ToString("C")</td>
+                                    <td>
+                                        <span class="badge @(trabajador.TipoGasto == "fijo" ? "bg-success" : "bg-warning")">
+                                            @(trabajador.TipoGasto == "fijo" ? "Fijo" : "Variable")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (trabajador.TieneUsuario)
+                                        {
+                                            if (trabajador.UsuarioActivo)
+                                            {
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle"></i> Activo
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times-circle"></i> Inactivo
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-user-slash"></i> Sin usuario
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="Desempeno" asp-route-id="@trabajador.Id" class="btn btn-sm btn-outline-info" title="Ver Desempeño">
+                                            <i class="fas fa-chart-line"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@trabajador.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @if (trabajador.TieneUsuario && trabajador.UsuarioActivo)
+                                        {
+                                            <form asp-action="DesactivarAcceso" asp-route-id="@trabajador.Id" method="post" class="d-inline" onsubmit="return confirm('¿Está seguro de desactivar el acceso de este trabajador?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Desactivar Acceso">
+                                                    <i class="fas fa-user-lock"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        <form asp-action="Delete" asp-route-id="@trabajador.Id" method="post" class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este trabajador?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No se encontraron trabajadores. <a asp-action="Create">Registrar primer trabajador</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

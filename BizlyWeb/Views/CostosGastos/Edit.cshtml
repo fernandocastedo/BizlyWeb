@@ -1,0 +1,113 @@
+@model CostoGastoViewModel
+@{
+    ViewData["Title"] = "Editar Costo/Gasto";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit"></i> Editar Costo/Gasto
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Descripcion" class="form-label">Descripción *</label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="3" required></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Monto" class="form-label">Monto *</label>
+                                <input asp-for="Monto" type="number" step="0.01" min="0.01" class="form-control" required />
+                                <span asp-validation-for="Monto" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Fecha" class="form-label">Fecha *</label>
+                                <input asp-for="Fecha" type="date" class="form-control" required />
+                                <span asp-validation-for="Fecha" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CategoriaFinanciera" class="form-label">Categoría Financiera *</label>
+                                <select asp-for="CategoriaFinanciera" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="DIRECTO" selected="@(Model.CategoriaFinanciera == "DIRECTO")">Directo</option>
+                                    <option value="ADMINISTRATIVO" selected="@(Model.CategoriaFinanciera == "ADMINISTRATIVO")">Administrativo</option>
+                                </select>
+                                <span asp-validation-for="CategoriaFinanciera" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Clasificacion" class="form-label">Clasificación *</label>
+                                <select asp-for="Clasificacion" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="FIJO" selected="@(Model.Clasificacion == "FIJO")">Fijo</option>
+                                    <option value="VARIABLE" selected="@(Model.Clasificacion == "VARIABLE")">Variable</option>
+                                </select>
+                                <span asp-validation-for="Clasificacion" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="SucursalId" class="form-label">Sucursal (Opcional)</label>
+                                <select asp-for="SucursalId" class="form-select">
+                                    <option value="">Sin sucursal específica</option>
+                                    @foreach (var sucursal in Model.Sucursales)
+                                    {
+                                        <option value="@sucursal.Id" selected="@(Model.SucursalId == sucursal.Id)">@sucursal.Nombre - @sucursal.Ciudad</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="SucursalId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="InsumoId" class="form-label">Insumo (Opcional)</label>
+                                <select asp-for="InsumoId" class="form-select">
+                                    <option value="">Sin insumo específico</option>
+                                    @foreach (var insumo in Model.Insumos)
+                                    {
+                                        <option value="@insumo.Id" selected="@(Model.InsumoId == insumo.Id)">@insumo.Nombre</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="InsumoId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="TrabajadorId" class="form-label">Trabajador (Opcional)</label>
+                                <input asp-for="TrabajadorId" type="text" class="form-control" placeholder="ID del trabajador" />
+                                <span asp-validation-for="TrabajadorId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

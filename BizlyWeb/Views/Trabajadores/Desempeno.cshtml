@@ -1,0 +1,104 @@
+@model DesempenoTrabajadorViewModel
+@{
+    ViewData["Title"] = "Desempeño del Trabajador";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-chart-line"></i> Desempeño: @Model.TrabajadorNombre
+                </h2>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros de Fecha -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Desempeno" asp-route-id="@Model.TrabajadorId" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Inicio</label>
+                    <input type="date" name="fechaInicio" class="form-control" value="@(Model.FechaInicio?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Fin</label>
+                    <input type="date" name="fechaFin" class="form-control" value="@(Model.FechaFin?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a asp-action="Desempeno" asp-route-id="@Model.TrabajadorId" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Información del Trabajador -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Información del Trabajador</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Nombre:</strong> @Model.TrabajadorNombre</p>
+                    <p><strong>Cargo:</strong> @Model.Cargo</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas de Desempeño -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ventas</h5>
+                    <h3 class="text-primary">@Model.TotalVentas</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ingresos</h5>
+                    <h3 class="text-success">@Model.TotalIngresos.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Promedio por Venta</h5>
+                    <h3 class="text-info">@Model.PromedioVenta.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Ventas Mes Actual</h5>
+                    <h3 class="text-warning">@Model.VentasMesActual</h3>
+                    <small class="text-muted">@Model.IngresosMesActual.ToString("C")</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.TotalVentas == 0)
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Este trabajador aún no tiene ventas registradas en el período seleccionado.
+        </div>
+    }
+</div>
+

@@ -352,7 +352,7 @@ Basado en VentaTransacciones y requerimientos del proyecto:
 4. ✅ Vista de crear/editar cliente
 5. ✅ Top clientes (RF-40)
 
-### **FASE 8: Costos y Gastos (RF-32 a RF-37)**
+### **FASE 8: Costos y Gastos (RF-32 a RF-37)** ✅ COMPLETADA
 **NOTA: RF-33 (ML Kit) se omite - solo móvil**
 
 1. ✅ Crear `CostosGastosController`
@@ -363,7 +363,7 @@ Basado en VentaTransacciones y requerimientos del proyecto:
 6. ✅ Edición y eliminación (RF-35)
 7. ✅ Alerta de incremento de costos (RF-37)
 
-### **FASE 9: Trabajadores (RF-46 a RF-52)**
+### **FASE 9: Trabajadores (RF-46 a RF-52)** ✅ COMPLETADA
 1. ✅ Crear `TrabajadoresController`
 2. ✅ Implementar `TrabajadorService` (CRUD trabajadores)
 3. ✅ Vista de lista de trabajadores

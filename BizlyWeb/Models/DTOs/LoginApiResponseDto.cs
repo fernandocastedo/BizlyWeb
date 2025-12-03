@@ -39,6 +39,9 @@ namespace BizlyWeb.Models.DTOs
         
         [JsonPropertyName("trabajadorId")]
         public string? TrabajadorId { get; set; }
+        
+        [JsonPropertyName("activo")]
+        public bool Activo { get; set; } = true;
     }
 }
 
