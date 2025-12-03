@@ -108,14 +108,19 @@ namespace BizlyWeb.Services
                 session.SetString("UserName", usuario.Nombre ?? string.Empty);
                 session.SetString("UserEmail", usuario.Email ?? string.Empty);
                 
-                if (usuario.UsuarioId.HasValue)
+                if (!string.IsNullOrEmpty(usuario.UsuarioId))
                 {
-                    session.SetInt32("UsuarioId", usuario.UsuarioId.Value);
+                    session.SetString("UsuarioId", usuario.UsuarioId);
                 }
                 
-                if (usuario.EmpresaId.HasValue)
+                if (!string.IsNullOrEmpty(usuario.EmpresaId))
                 {
-                    session.SetInt32("EmpresaId", usuario.EmpresaId.Value);
+                    session.SetString("EmpresaId", usuario.EmpresaId);
+                }
+
+                if (!string.IsNullOrEmpty(usuario.SucursalId))
+                {
+                    session.SetString("SucursalId", usuario.SucursalId);
                 }
             }
         }
