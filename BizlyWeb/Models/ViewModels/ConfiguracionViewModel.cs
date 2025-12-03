@@ -8,12 +8,12 @@ namespace BizlyWeb.Models.ViewModels
         public List<SucursalViewModel> Sucursales { get; set; } = new();
 
         // Formulario de sucursal
+        // Nota: No usar [Required] aquí porque causa conflictos con el formulario de ActualizarEmpresa
+        // La validación se hace manualmente en CrearSucursal
         [Display(Name = "Nombre de la Sucursal")]
-        [Required(ErrorMessage = "El nombre de la sucursal es requerido")]
         public string NuevaSucursalNombre { get; set; } = string.Empty;
 
         [Display(Name = "Dirección")]
-        [Required(ErrorMessage = "La dirección es requerida")]
         public string NuevaSucursalDireccion { get; set; } = string.Empty;
 
         [Display(Name = "Ciudad")]

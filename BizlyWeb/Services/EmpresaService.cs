@@ -39,9 +39,16 @@ namespace BizlyWeb.Services
                 return false;
             }
 
-            var response = await _apiService.PutAsync<EmpresaDto, EmpresaDto>($"/api/empresas/{empresa.Id}", empresa);
-            // PUT retorna 204 sin contenido, nuestro ApiService devuelve default, así que consideramos éxito si no hubo excepción
-            return response != null || true;
+            try
+            {
+                // PUT retorna 204 NoContent, así que si no hay excepción, fue exitoso
+                await _apiService.PutAsync<EmpresaDto, EmpresaDto>($"/api/empresas/{empresa.Id}", empresa);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

@@ -345,7 +345,7 @@ Basado en VentaTransacciones y requerimientos del proyecto:
 11. ✅ Ventana de pedidos pendientes (RF-30)
 12. ✅ Actualización automática de estado (RF-31)
 
-### **FASE 7: Clientes (RF-26, RF-40)**
+### **FASE 7: Clientes (RF-26, RF-40)** ✅ COMPLETADA
 1. ✅ Crear `ClientesController`
 2. ✅ Implementar `ClienteService` (CRUD clientes)
 3. ✅ Vista de lista de clientes

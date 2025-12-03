@@ -161,6 +161,12 @@ namespace BizlyWeb.Services
                 var responseContent = await response.Content.ReadAsStringAsync();
                 EnsureSuccess(response, endpoint, responseContent);
 
+                // Si es 204 NoContent, retornar default (null)
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent || string.IsNullOrWhiteSpace(responseContent))
+                {
+                    return default(TResponse);
+                }
+
                 return DeserializeResponse<TResponse>(responseContent);
             }
             catch (ApiException)

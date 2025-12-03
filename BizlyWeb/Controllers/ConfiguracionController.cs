@@ -2,6 +2,7 @@ using BizlyWeb.Models.DTOs;
 using BizlyWeb.Models.ViewModels;
 using BizlyWeb.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace BizlyWeb.Controllers
 {
@@ -61,17 +62,78 @@ namespace BizlyWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActualizarEmpresa(EmpresaViewModel model, IFormFile? logo)
+        [RequestSizeLimit(20971520)] // 20MB
+        [RequestFormLimits(MultipartBodyLengthLimit = 20971520, ValueLengthLimit = 20971520)]
+        public async Task<IActionResult> ActualizarEmpresa(ConfiguracionViewModel model, IFormFile? logo)
         {
-            if (!ModelState.IsValid)
+            if (model?.Empresa == null)
+            {
+                TempData["ErrorMessage"] = "No se recibieron los datos del formulario.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Remover errores de validación relacionados con campos de sucursal
+            // porque este formulario solo actualiza la empresa
+            ModelState.Remove(nameof(model.NuevaSucursalNombre));
+            ModelState.Remove(nameof(model.NuevaSucursalDireccion));
+            ModelState.Remove(nameof(model.NuevaSucursalCiudad));
+            ModelState.Remove(nameof(model.NuevaSucursalDepartamento));
+            ModelState.Remove(nameof(model.NuevaSucursalTelefono));
+
+            // Validar campos requeridos de empresa manualmente
+            if (string.IsNullOrWhiteSpace(model.Empresa.Nombre))
+            {
+                ModelState.AddModelError("Empresa.Nombre", "El nombre es requerido.");
+            }
+            if (string.IsNullOrWhiteSpace(model.Empresa.Rubro))
+            {
+                ModelState.AddModelError("Empresa.Rubro", "El rubro es requerido.");
+            }
+            if (model.Empresa.MargenGanancia < 0)
+            {
+                ModelState.AddModelError("Empresa.MargenGanancia", "El margen de ganancia debe ser mayor o igual a 0.");
+            }
+
+            // Validar solo los campos de empresa
+            var empresaErrors = ModelState
+                .Where(x => x.Key.StartsWith("Empresa."))
+                .SelectMany(x => x.Value?.Errors ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.ModelBinding.ModelError>())
+                .Any();
+
+            if (empresaErrors || !ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Revisa los datos del formulario.";
-                return RedirectToAction(nameof(Index));
+                // Recargar datos para mostrar el formulario con errores
+                var empresa = await _empresaService.ObtenerEmpresaActualAsync();
+                var sucursales = await _sucursalService.ObtenerSucursalesAsync();
+                if (empresa != null)
+                {
+                    model.Empresa.Id = empresa.Id;
+                    model.Empresa.LogoUrl = string.IsNullOrWhiteSpace(empresa.LogoUrl) ? "/img/placeholder-logo.svg" : empresa.LogoUrl;
+                }
+                model.Sucursales = sucursales.Select(s => new SucursalViewModel
+                {
+                    Id = s.Id,
+                    Nombre = s.Nombre,
+                    Direccion = s.Direccion,
+                    Ciudad = s.Ciudad,
+                    Departamento = s.Departamento,
+                    Telefono = s.Telefono
+                }).ToList();
+                return View("Index", model);
             }
 
             try
             {
-                string? logoUrl = model.LogoUrl;
+                // Obtener la empresa actual para preservar CreatedAt y UpdatedAt
+                var empresaActual = await _empresaService.ObtenerEmpresaActualAsync();
+                if (empresaActual == null)
+                {
+                    TempData["ErrorMessage"] = "No se pudo obtener la información del emprendimiento.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                string? logoUrl = empresaActual.LogoUrl; // Mantener el logo actual por defecto
                 if (logo != null && logo.Length > 0)
                 {
                     logoUrl = await _fileService.SaveLogoAsync(logo);
@@ -79,22 +141,30 @@ namespace BizlyWeb.Controllers
 
                 var dto = new EmpresaDto
                 {
-                    Id = model.Id,
-                    Nombre = model.Nombre,
-                    Rubro = model.Rubro,
-                    Descripcion = model.Descripcion,
-                    MargenGanancia = model.MargenGanancia,
-                    LogoUrl = logoUrl ?? string.Empty
+                    Id = model.Empresa.Id ?? empresaActual.Id,
+                    Nombre = model.Empresa.Nombre,
+                    Rubro = model.Empresa.Rubro,
+                    Descripcion = model.Empresa.Descripcion ?? string.Empty,
+                    MargenGanancia = model.Empresa.MargenGanancia,
+                    LogoUrl = logoUrl ?? string.Empty,
+                    CreatedAt = empresaActual.CreatedAt, // Preservar fecha de creación
+                    UpdatedAt = DateTime.UtcNow // Actualizar fecha de modificación
                 };
 
                 var result = await _empresaService.ActualizarEmpresaAsync(dto);
-                TempData[result ? "SuccessMessage" : "ErrorMessage"] =
-                    result ? "Datos actualizados correctamente." : "No se pudo actualizar la empresa.";
+                if (result)
+                {
+                    TempData["SuccessMessage"] = "Datos actualizados correctamente.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "No se pudo actualizar la empresa. Verifica los datos e intenta nuevamente.";
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al actualizar empresa");
-                TempData["ErrorMessage"] = "Ocurrió un error al actualizar la empresa.";
+                _logger.LogError(ex, "Error al actualizar empresa: {Message}", ex.Message);
+                TempData["ErrorMessage"] = $"Ocurrió un error al actualizar la empresa: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));
@@ -104,10 +174,54 @@ namespace BizlyWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CrearSucursal(ConfiguracionViewModel model)
         {
-            if (!ModelState.IsValid)
+            // Remover errores de validación relacionados con campos de empresa
+            // porque este formulario solo crea sucursales
+            ModelState.Remove(nameof(model.Empresa));
+
+            // Validar campos requeridos de sucursal manualmente
+            if (string.IsNullOrWhiteSpace(model.NuevaSucursalNombre))
+            {
+                ModelState.AddModelError(nameof(model.NuevaSucursalNombre), "El nombre de la sucursal es requerido.");
+            }
+            if (string.IsNullOrWhiteSpace(model.NuevaSucursalDireccion))
+            {
+                ModelState.AddModelError(nameof(model.NuevaSucursalDireccion), "La dirección es requerida.");
+            }
+
+            // Validar solo los campos de sucursal
+            var sucursalErrors = ModelState
+                .Where(x => x.Key.StartsWith("NuevaSucursal"))
+                .SelectMany(x => x.Value?.Errors ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.ModelBinding.ModelError>())
+                .Any();
+
+            if (sucursalErrors || !ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Revisa los datos de la nueva sucursal.";
-                return RedirectToAction(nameof(Index));
+                // Recargar datos para mostrar el formulario con errores
+                var empresa = await _empresaService.ObtenerEmpresaActualAsync();
+                var sucursales = await _sucursalService.ObtenerSucursalesAsync();
+                if (empresa != null)
+                {
+                    model.Empresa = new EmpresaViewModel
+                    {
+                        Id = empresa.Id,
+                        Nombre = empresa.Nombre,
+                        Rubro = empresa.Rubro,
+                        Descripcion = empresa.Descripcion,
+                        MargenGanancia = empresa.MargenGanancia,
+                        LogoUrl = string.IsNullOrWhiteSpace(empresa.LogoUrl) ? "/img/placeholder-logo.svg" : empresa.LogoUrl
+                    };
+                }
+                model.Sucursales = sucursales.Select(s => new SucursalViewModel
+                {
+                    Id = s.Id,
+                    Nombre = s.Nombre,
+                    Direccion = s.Direccion,
+                    Ciudad = s.Ciudad,
+                    Departamento = s.Departamento,
+                    Telefono = s.Telefono
+                }).ToList();
+                return View("Index", model);
             }
 
             try
