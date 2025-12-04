@@ -1,0 +1,125 @@
+@using BizlyWeb.Models.DTOs
+@model ReporteCostosGastosDto
+@{
+    ViewData["Title"] = "Reporte de Costos y Gastos";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-money-bill-wave"></i> Reporte de Costos y Gastos
+                </h2>
+                <div>
+                    <a asp-action="ExportarCostosPDF" asp-route-fechaInicio="@Model.FechaInicio?.ToString("yyyy-MM-dd")" asp-route-fechaFin="@Model.FechaFin?.ToString("yyyy-MM-dd")" class="btn btn-primary">
+                        <i class="fas fa-file-pdf"></i> Exportar a PDF
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary ms-2">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="CostosGastos" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Inicio</label>
+                    <input type="date" name="fechaInicio" class="form-control" value="@(Model.FechaInicio?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Fin</label>
+                    <input type="date" name="fechaFin" class="form-control" value="@(Model.FechaFin?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a asp-action="CostosGastos" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total</h5>
+                    <h3 class="text-primary">@Model.TotalCostosGastos.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Directos</h5>
+                    <h4 class="text-info">@Model.TotalDirectos.ToString("C")</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Administrativos</h5>
+                    <h4 class="text-secondary">@Model.TotalAdministrativos.ToString("C")</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Fijos</h5>
+                    <h4 class="text-success">@Model.TotalFijos.ToString("C")</h4>
+                    <small class="text-muted">Variables: @Model.TotalVariables.ToString("C")</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Costos por Día -->
+    @if (Model.CostosPorDia.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Costos y Gastos por Día</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var costo in Model.CostosPorDia)
+                            {
+                                <tr>
+                                    <td>@costo.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td><strong>@costo.Total.ToString("C")</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No hay costos y gastos registrados en el período seleccionado.
+        </div>
+    }
+</div>
+

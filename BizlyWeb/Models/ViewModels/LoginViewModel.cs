@@ -24,3 +24,4 @@ namespace BizlyWeb.Models.ViewModels
     }
 }
 
+

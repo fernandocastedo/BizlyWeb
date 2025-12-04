@@ -1,0 +1,232 @@
+@using BizlyWeb.Models.DTOs
+@model ReporteIndexViewModel
+@{
+    ViewData["Title"] = "Reportes y Métricas";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-chart-bar"></i> Reportes y Métricas
+                </h2>
+                <div>
+                    <a asp-action="Ventas" asp-route-fechaInicio="@Model.FiltroFechaInicio?.ToString("yyyy-MM-dd")" asp-route-fechaFin="@Model.FiltroFechaFin?.ToString("yyyy-MM-dd")" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-file-pdf"></i> Exportar Ventas PDF
+                    </a>
+                    <a asp-action="CostosGastos" asp-route-fechaInicio="@Model.FiltroFechaInicio?.ToString("yyyy-MM-dd")" asp-route-fechaFin="@Model.FiltroFechaFin?.ToString("yyyy-MM-dd")" class="btn btn-outline-primary">
+                        <i class="fas fa-file-pdf"></i> Exportar Costos PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Index" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Inicio</label>
+                    <input type="date" name="fechaInicio" class="form-control" value="@(Model.FiltroFechaInicio?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Fin</label>
+                    <input type="date" name="fechaFin" class="form-control" value="@(Model.FiltroFechaFin?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen de Ventas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ventas</h5>
+                    <h3 class="text-primary">@Model.ReporteVentas.TotalVentas</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ingresos</h5>
+                    <h3 class="text-success">@Model.ReporteVentas.TotalIngresos.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Promedio por Venta</h5>
+                    <h3 class="text-info">@Model.ReporteVentas.PromedioVenta.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Costos</h5>
+                    <h3 class="text-danger">@Model.ReporteCostosGastos.TotalCostosGastos.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas Financieras -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Margen de Ganancia Promedio</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="text-success">@Model.MargenGananciaPromedio.ToString("F2")%</h2>
+                    <a asp-action="Metricas" class="btn btn-sm btn-outline-primary mt-2">Ver Detalles</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Punto de Equilibrio</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="text-warning">@Model.PuntoEquilibrio.PuntoEquilibrio.ToString("C")</h2>
+                    <small class="text-muted">Margen Contribución: @Model.PuntoEquilibrio.MargenContribucion.ToString("F2")%</small>
+                    <br />
+                    <a asp-action="Metricas" class="btn btn-sm btn-outline-primary mt-2">Ver Detalles</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Comparativa Mensual</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p>Últimos @Model.ComparativaMensual.Meses.Count meses</p>
+                    <a asp-action="Comparativa" class="btn btn-sm btn-outline-primary">Ver Comparativa</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Productos y Clientes -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top Productos</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopProductos.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Ingresos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.TopProductos.Count; i++)
+                                    {
+                                        <tr>
+                                            <td><strong>@(i + 1)</strong></td>
+                                            <td>@Model.TopProductos[i].ProductoNombre</td>
+                                            <td>@Model.TopProductos[i].CantidadVendida</td>
+                                            <td>@Model.TopProductos[i].TotalIngresos.ToString("C")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No hay productos vendidos en el período.</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top Clientes</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopClientes.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Cliente</th>
+                                        <th>Compras</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.TopClientes.Count; i++)
+                                    {
+                                        <tr>
+                                            <td><strong>@(i + 1)</strong></td>
+                                            <td>@Model.TopClientes[i].ClienteNombre</td>
+                                            <td>@Model.TopClientes[i].TotalCompras</td>
+                                            <td>@Model.TopClientes[i].TotalGastado.ToString("C")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No hay clientes con compras en el período.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enlaces a Reportes Detallados -->
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5><i class="fas fa-cash-register"></i> Reporte de Ventas</h5>
+                    <a asp-action="Ventas" asp-route-fechaInicio="@Model.FiltroFechaInicio?.ToString("yyyy-MM-dd")" asp-route-fechaFin="@Model.FiltroFechaFin?.ToString("yyyy-MM-dd")" class="btn btn-primary">
+                        Ver Reporte Completo
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5><i class="fas fa-money-bill-wave"></i> Reporte de Costos y Gastos</h5>
+                    <a asp-action="CostosGastos" asp-route-fechaInicio="@Model.FiltroFechaInicio?.ToString("yyyy-MM-dd")" asp-route-fechaFin="@Model.FiltroFechaFin?.ToString("yyyy-MM-dd")" class="btn btn-primary">
+                        Ver Reporte Completo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

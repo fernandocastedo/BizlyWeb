@@ -1,0 +1,118 @@
+@using BizlyWeb.Models.DTOs
+@model ReporteVentasDto
+@{
+    ViewData["Title"] = "Reporte de Ventas";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    <i class="fas fa-cash-register"></i> Reporte de Ventas
+                </h2>
+                <div>
+                    <a asp-action="ExportarVentasPDF" asp-route-fechaInicio="@Model.FechaInicio?.ToString("yyyy-MM-dd")" asp-route-fechaFin="@Model.FechaFin?.ToString("yyyy-MM-dd")" class="btn btn-primary">
+                        <i class="fas fa-file-pdf"></i> Exportar a PDF
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary ms-2">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Ventas" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Inicio</label>
+                    <input type="date" name="fechaInicio" class="form-control" value="@(Model.FechaInicio?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Fecha Fin</label>
+                    <input type="date" name="fechaFin" class="form-control" value="@(Model.FechaFin?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a asp-action="Ventas" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ventas</h5>
+                    <h3 class="text-primary">@Model.TotalVentas</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ingresos</h5>
+                    <h3 class="text-success">@Model.TotalIngresos.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Promedio por Venta</h5>
+                    <h3 class="text-info">@Model.PromedioVenta.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ventas por Día -->
+    @if (Model.VentasPorDia.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Ventas por Día</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cantidad de Ventas</th>
+                                <th>Total Ingresos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var venta in Model.VentasPorDia)
+                            {
+                                <tr>
+                                    <td>@venta.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td>@venta.Cantidad</td>
+                                    <td><strong>@venta.Total.ToString("C")</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No hay ventas registradas en el período seleccionado.
+        </div>
+    }
+</div>
+

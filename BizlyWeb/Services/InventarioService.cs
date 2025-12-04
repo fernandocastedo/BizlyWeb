@@ -101,11 +101,20 @@ namespace BizlyWeb.Services
                 return false;
             }
 
-            // Recalcular PrecioTotal
-            insumo.PrecioTotal = insumo.Cantidad * insumo.PrecioUnitario;
+            try
+            {
+                // Recalcular PrecioTotal
+                insumo.PrecioTotal = insumo.Cantidad * insumo.PrecioUnitario;
 
-            var response = await _apiService.PutAsync<InsumoDto, InsumoDto>($"/api/insumos/{insumo.Id}", insumo);
-            return response != null;
+                // La API puede devolver 204 NoContent en actualizaciones exitosas,
+                // lo que hace que PutAsync retorne null. Si no hay excepción, la operación fue exitosa.
+                await _apiService.PutAsync<InsumoDto, InsumoDto>($"/api/insumos/{insumo.Id}", insumo);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>

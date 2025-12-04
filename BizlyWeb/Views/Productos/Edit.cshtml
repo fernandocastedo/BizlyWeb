@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Editar Producto";
     Layout = "_Layout";
-    var insumos = ViewBag.Insumos as List<dynamic> ?? new List<dynamic>();
+    var insumos = ViewBag.Insumos as List<InsumoViewModel> ?? new List<InsumoViewModel>();
 }
 
 <div class="container-fluid">
@@ -88,6 +88,14 @@
                             </div>
                         }
 
+                        @if (insumos == null || insumos.Count == 0)
+                        {
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                No hay insumos activos disponibles. Por favor, crea insumos en la sección de <a asp-controller="Inventario" asp-action="Create">Inventario</a> primero.
+                            </div>
+                        }
+
                         <div id="insumosContainer">
                             <!-- Los insumos se agregarán dinámicamente aquí -->
                         </div>
@@ -114,23 +122,52 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
-        const insumos = @Html.Raw(Json.Serialize(insumos));
-        const insumosProducto = @Html.Raw(Json.Serialize(Model.Insumos));
+        // Serializar insumos - ASP.NET Core por defecto usa camelCase en JSON
+        const insumosRaw = @Html.Raw(Json.Serialize(insumos)) || [];
+        
+        // Normalizar los insumos para manejar tanto camelCase como PascalCase
+        const insumos = Array.isArray(insumosRaw) ? insumosRaw.map(i => ({
+            id: i.id || i.Id || '',
+            nombre: i.nombre || i.Nombre || 'Sin nombre',
+            unidadMedida: i.unidadMedida || i.UnidadMedida || 'N/A',
+            cantidad: i.cantidad !== undefined ? i.cantidad : (i.Cantidad !== undefined ? i.Cantidad : 0),
+            precioUnitario: i.precioUnitario !== undefined ? i.precioUnitario : (i.PrecioUnitario !== undefined ? i.PrecioUnitario : 0)
+        })) : [];
+
+        // Normalizar insumos del producto existente
+        const insumosProductoRaw = @Html.Raw(Json.Serialize(Model.Insumos)) || [];
+        const insumosProducto = Array.isArray(insumosProductoRaw) ? insumosProductoRaw.map(ip => ({
+            insumoId: ip.insumoId || ip.InsumoId || '',
+            cantidadUtilizada: ip.cantidadUtilizada !== undefined ? ip.cantidadUtilizada : (ip.CantidadUtilizada !== undefined ? ip.CantidadUtilizada : 0)
+        })) : [];
+
         const productoId = '@Model.Id';
+
+        // Debug: verificar que los insumos se cargaron
+        console.log('Insumos raw:', insumosRaw);
+        console.log('Insumos normalizados:', insumos);
+        console.log('Insumos del producto:', insumosProducto);
 
         function agregarFilaInsumo(insumoId = '', cantidad = 0) {
             const container = document.getElementById('insumosContainer');
             const div = document.createElement('div');
             div.className = 'row mb-2 insumo-row';
             
-            const insumo = insumos.find(i => i.Id === insumoId);
-            const stockInfo = insumo ? `Stock: ${insumo.Cantidad} ${insumo.UnidadMedida}` : '';
+            // Generar opciones de insumos
+            let opcionesInsumos = '<option value="">No hay insumos disponibles</option>';
+            
+            if (insumos.length > 0) {
+                opcionesInsumos = insumos.map(i => {
+                    const selected = (i.id === insumoId) ? 'selected' : '';
+                    return `<option value="${i.id}" ${selected}>${i.nombre} (${i.unidadMedida}) - Stock: ${i.cantidad}</option>`;
+                }).join('');
+            }
             
             div.innerHTML = `
                 <div class="col-md-5">
                     <select name="insumoIds" class="form-select insumo-select" required>
                         <option value="">Seleccione un insumo...</option>
-                        ${insumos.map(i => `<option value="${i.Id}" ${i.Id === insumoId ? 'selected' : ''}>${i.Nombre} (${i.UnidadMedida}) - Stock: ${i.Cantidad}</option>`).join('')}
+                        ${opcionesInsumos}
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -174,7 +211,9 @@
 
         // Cargar insumos existentes
         insumosProducto.forEach(ip => {
-            agregarFilaInsumo(ip.insumoId || ip.InsumoId, ip.cantidadUtilizada || ip.CantidadUtilizada);
+            if (ip.insumoId && ip.cantidadUtilizada > 0) {
+                agregarFilaInsumo(ip.insumoId, ip.cantidadUtilizada);
+            }
         });
 
         // Si no hay insumos, agregar una fila vacía

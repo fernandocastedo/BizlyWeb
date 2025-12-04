@@ -13,10 +13,11 @@
                 </h5>
 
                 <div class="d-flex align-items-center mb-4">
-                    <img src="@(Model.Empresa.LogoUrl ?? "/img/placeholder-logo.svg")"
-                         alt="Logo"
-                         class="rounded-circle me-3"
-                         style="width:80px;height:80px;object-fit:cover;">
+                    <div class="logo-container me-3">
+                        <img src="@(Model.Empresa.LogoUrl ?? "/img/placeholder-logo.svg")"
+                             alt="Logo"
+                             class="logo-circular">
+                    </div>
                     <div>
                         <h4 class="mb-1">@Model.Empresa.Nombre</h4>
                         <p class="text-muted mb-0">@Model.Empresa.Rubro</p>

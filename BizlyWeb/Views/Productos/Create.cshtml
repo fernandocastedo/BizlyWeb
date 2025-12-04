@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Crear Producto";
     Layout = "_Layout";
-    var insumos = ViewBag.Insumos as List<dynamic> ?? new List<dynamic>();
+    var insumos = ViewBag.Insumos as List<InsumoViewModel> ?? new List<InsumoViewModel>();
 }
 
 <div class="container-fluid">
@@ -76,6 +76,14 @@
                             <i class="fas fa-boxes"></i> Insumos del Producto
                         </h5>
 
+                        @if (insumos == null || insumos.Count == 0)
+                        {
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                No hay insumos activos disponibles. Por favor, crea insumos en la sección de <a asp-controller="Inventario" asp-action="Create">Inventario</a> primero.
+                            </div>
+                        }
+
                         <div id="insumosContainer">
                             <!-- Los insumos se agregarán dinámicamente aquí -->
                         </div>
@@ -102,18 +110,51 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
-        const insumos = @Html.Raw(Json.Serialize(insumos));
+        // Serializar insumos - ASP.NET Core por defecto usa camelCase en JSON
+        const insumosRaw = @Html.Raw(Json.Serialize(insumos)) || [];
+        
+        // Normalizar los insumos para manejar tanto camelCase como PascalCase
+        const insumos = Array.isArray(insumosRaw) ? insumosRaw.map(i => ({
+            id: i.id || i.Id || '',
+            nombre: i.nombre || i.Nombre || 'Sin nombre',
+            unidadMedida: i.unidadMedida || i.UnidadMedida || 'N/A',
+            cantidad: i.cantidad !== undefined ? i.cantidad : (i.Cantidad !== undefined ? i.Cantidad : 0),
+            precioUnitario: i.precioUnitario !== undefined ? i.precioUnitario : (i.PrecioUnitario !== undefined ? i.PrecioUnitario : 0)
+        })) : [];
+        
         let insumoIndex = 0;
+
+        // Debug: verificar que los insumos se cargaron
+        console.log('Insumos raw:', insumosRaw);
+        console.log('Insumos normalizados:', insumos);
+        console.log('Cantidad de insumos:', insumos.length);
+        if (insumos.length > 0) {
+            console.log('Primer insumo:', insumos[0]);
+        }
+        if (insumos.length === 0) {
+            console.warn('No se encontraron insumos. Asegúrate de tener insumos activos en el inventario.');
+        }
 
         function agregarFilaInsumo(insumoId = '', cantidad = 0) {
             const container = document.getElementById('insumosContainer');
             const div = document.createElement('div');
             div.className = 'row mb-2 insumo-row';
+            
+            // Generar opciones de insumos
+            let opcionesInsumos = '<option value="">No hay insumos disponibles</option>';
+            
+            if (insumos.length > 0) {
+                opcionesInsumos = insumos.map(i => {
+                    const selected = (i.id === insumoId) ? 'selected' : '';
+                    return `<option value="${i.id}" ${selected}>${i.nombre} (${i.unidadMedida}) - Stock: ${i.cantidad}</option>`;
+                }).join('');
+            }
+            
             div.innerHTML = `
                 <div class="col-md-5">
                     <select name="insumoIds" class="form-select insumo-select" required>
                         <option value="">Seleccione un insumo...</option>
-                        ${insumos.map(i => `<option value="${i.Id}" ${i.Id === insumoId ? 'selected' : ''}>${i.Nombre} (${i.UnidadMedida}) - Stock: ${i.Cantidad}</option>`).join('')}
+                        ${opcionesInsumos}
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -138,10 +179,40 @@
             div.querySelector('.insumo-select').addEventListener('change', calcularPrecioSugerido);
         }
 
+        // Obtener el margen de ganancia desde el ViewBag
+        const margenGanancia = @(ViewBag.MargenGanancia ?? 0);
+
         function calcularPrecioSugerido() {
-            // Esta función se implementará cuando se cree el producto
-            // Por ahora solo mostramos 0
-            document.getElementById('precioSugerido').value = '0.00';
+            // Obtener todas las filas de insumos
+            const filasInsumos = document.querySelectorAll('.insumo-row');
+            let costoTotal = 0;
+
+            filasInsumos.forEach(fila => {
+                const selectInsumo = fila.querySelector('.insumo-select');
+                const inputCantidad = fila.querySelector('.cantidad-input');
+                
+                if (selectInsumo && inputCantidad) {
+                    const insumoId = selectInsumo.value;
+                    const cantidad = parseFloat(inputCantidad.value) || 0;
+                    
+                    if (insumoId && cantidad > 0) {
+                        // Buscar el insumo en la lista para obtener su precio unitario
+                        const insumo = insumos.find(i => i.id === insumoId);
+                        if (insumo && insumo.precioUnitario) {
+                            costoTotal += cantidad * insumo.precioUnitario;
+                        }
+                    }
+                }
+            });
+
+            // Calcular precio sugerido: Costo Total × (1 + Margen/100)
+            const precioSugerido = costoTotal * (1 + margenGanancia / 100);
+            
+            // Actualizar el campo de precio sugerido
+            const precioSugeridoInput = document.getElementById('precioSugerido');
+            if (precioSugeridoInput) {
+                precioSugeridoInput.value = precioSugerido.toFixed(2);
+            }
         }
 
         document.getElementById('agregarInsumoBtn').addEventListener('click', function() {

@@ -1,85 +1,301 @@
+@using BizlyWeb.Models.DTOs
+@model DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
     Layout = "_Layout";
 }
 
-<div class="row">
-    <div class="col-12">
-        <h1 class="mb-4">
-            <i class="fas fa-tachometer-alt"></i> Dashboard
-        </h1>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </h2>
+        </div>
     </div>
+
+    <!-- Alertas -->
+    @if (Model.Alertas.Any())
+    {
+        @foreach (var alerta in Model.Alertas)
+        {
+            <div class="alert alert-@alerta.Tipo alert-dismissible fade show" role="alert">
+                <h5><i class="fas @alerta.Icono"></i> @alerta.Titulo</h5>
+                <p class="mb-0">@alerta.Mensaje</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+    }
+
+    <!-- Métricas Principales -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Ventas del Día</h6>
+                            <h2 class="mb-0">@Model.VentasDelDia.ToString("C")</h2>
+                            <small>@Model.VentasDelDiaCantidad venta(s)</small>
+                        </div>
+                        <i class="fas fa-shopping-cart fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Ventas del Mes</h6>
+                            <h2 class="mb-0">@Model.VentasDelMes.ToString("C")</h2>
+                            <small>@Model.VentasDelMesCantidad venta(s)</small>
+                        </div>
+                        <i class="fas fa-chart-line fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white @(Model.InsumosConStockBajo > 0 ? "bg-warning" : "bg-info") shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Stock Bajo</h6>
+                            <h2 class="mb-0">@Model.InsumosConStockBajo</h2>
+                            <small>de @Model.TotalInsumos insumo(s)</small>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white @(Model.GananciaDelMes < 0 ? "bg-danger" : "bg-info") shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Ganancia del Mes</h6>
+                            <h2 class="mb-0">@Model.GananciaDelMes.ToString("C")</h2>
+                            <small>Costos: @Model.CostosDelMes.ToString("C")</small>
+                        </div>
+                        <i class="fas fa-money-bill-wave fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas Secundarias -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="text-muted mb-2">Productos Activos</h5>
+                    <h3 class="text-primary">@Model.ProductosActivos</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="text-muted mb-2">Total Clientes</h5>
+                    <h3 class="text-success">@Model.TotalClientes</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="text-muted mb-2">Trabajadores</h5>
+                    <h3 class="text-info">@Model.TotalTrabajadores</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="text-muted mb-2">Total Insumos</h5>
+                    <h3 class="text-secondary">@Model.TotalInsumos</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfica de Ventas Últimos 7 Días -->
+    @if (Model.VentasUltimos7Dias.Any())
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-area"></i> Ventas Últimos 7 Días</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Cantidad de Ventas</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var venta in Model.VentasUltimos7Dias)
+                                    {
+                                        <tr>
+                                            <td>@venta.Fecha.ToString("dd/MM/yyyy")</td>
+                                            <td>@venta.Cantidad</td>
+                                            <td><strong>@venta.Total.ToString("C")</strong></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Top Productos y Clientes -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top 5 Productos del Mes</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopProductos.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Ingresos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.TopProductos.Count; i++)
+                                    {
+                                        <tr>
+                                            <td><strong>@(i + 1)</strong></td>
+                                            <td>@Model.TopProductos[i].ProductoNombre</td>
+                                            <td>@Model.TopProductos[i].CantidadVendida</td>
+                                            <td><strong>@Model.TopProductos[i].TotalIngresos.ToString("C")</strong></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No hay productos vendidos este mes.</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top 5 Clientes del Mes</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopClientes.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Cliente</th>
+                                        <th>Compras</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.TopClientes.Count; i++)
+                                    {
+                                        <tr>
+                                            <td><strong>@(i + 1)</strong></td>
+                                            <td>@Model.TopClientes[i].ClienteNombre</td>
+                                            <td>@Model.TopClientes[i].TotalCompras</td>
+                                            <td><strong>@Model.TopClientes[i].TotalGastado.ToString("C")</strong></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No hay clientes con compras este mes.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ventas Recientes -->
+    @if (Model.VentasRecientes.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-clock"></i> Ventas Recientes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Cliente</th>
+                                        <th>Total</th>
+                                        <th>Estado</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var venta in Model.VentasRecientes)
+                                    {
+                                        <tr>
+                                            <td>@venta.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@venta.ClienteNombre</td>
+                                            <td><strong>@venta.Total.ToString("C")</strong></td>
+                                            <td>
+                                                <span class="badge bg-@(venta.EstadoPedido == "completado" ? "success" : venta.EstadoPedido == "pendiente" ? "warning" : "secondary")">
+                                                    @venta.EstadoPedido
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a asp-controller="Ventas" asp-action="Detalle" asp-route-id="@venta.Id" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i> Ver
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-controller="Ventas" asp-action="Index" class="btn btn-outline-primary">
+                                <i class="fas fa-list"></i> Ver Todas las Ventas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
-
-<div class="row">
-    <div class="col-md-3 mb-4">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title">Ventas del Día</h6>
-                        <h2 class="mb-0">Bs. 0.00</h2>
-                    </div>
-                    <i class="fas fa-shopping-cart fa-2x"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-4">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title">Productos Activos</h6>
-                        <h2 class="mb-0">0</h2>
-                    </div>
-                    <i class="fas fa-box fa-2x"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-4">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title">Stock Bajo</h6>
-                        <h2 class="mb-0">0</h2>
-                    </div>
-                    <i class="fas fa-exclamation-triangle fa-2x"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-4">
-        <div class="card text-white bg-info">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title">Costos del Mes</h6>
-                        <h2 class="mb-0">Bs. 0.00</h2>
-                    </div>
-                    <i class="fas fa-money-bill-wave fa-2x"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Bienvenido a Bizly</h5>
-            </div>
-            <div class="card-body">
-                <p>Este es tu panel de control. Aquí podrás ver un resumen de tu negocio.</p>
-                <p>Las métricas se actualizarán conforme vayas registrando datos en el sistema.</p>
-            </div>
-        </div>
-    </div>
-</div>
-

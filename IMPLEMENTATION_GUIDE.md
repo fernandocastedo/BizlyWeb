@@ -372,7 +372,7 @@ Basado en VentaTransacciones y requerimientos del proyecto:
 6. ✅ Desactivación de acceso (RF-52)
 7. ✅ Reporte de desempeño (RF-51)
 
-### **FASE 10: Reportes y Métricas (RF-38 a RF-45)**
+### **FASE 10: Reportes y Métricas (RF-38 a RF-45)** ✅ COMPLETADA
 1. ✅ Crear `ReportesController`
 2. ✅ Implementar `ReporteService`
 3. ✅ Reporte de ventas (RF-38)
@@ -384,13 +384,13 @@ Basado en VentaTransacciones y requerimientos del proyecto:
 9. ✅ Comparativa mensual (RF-44)
 10. ✅ Exportación a PDF (RF-45)
 
-### **FASE 11: Categorías**
+### **FASE 11: Categorías** ✅ COMPLETADA
 1. ✅ Crear `CategoriasController`
 2. ✅ Implementar `CategoriaService` (CRUD categorías)
 3. ✅ Vista de lista de categorías
 4. ✅ Vista de crear/editar categoría
 
-### **FASE 12: Dashboard Principal (RF-07)**
+### **FASE 12: Dashboard Principal (RF-07)** ✅ COMPLETADA
 1. ✅ Crear `DashboardController`
 2. ✅ Implementar vista con métricas clave
 3. ✅ Gráficas rápidas

@@ -58,6 +58,8 @@ builder.Services.AddScoped<VentaService>();
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<CostoGastoService>();
 builder.Services.AddScoped<TrabajadorService>();
+builder.Services.AddScoped<ReporteService>();
+builder.Services.AddScoped<CategoriaService>();
 
 var app = builder.Build();
 

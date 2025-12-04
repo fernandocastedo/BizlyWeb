@@ -11,15 +11,18 @@ namespace BizlyWeb.Controllers
     {
         private readonly ProductoService _productoService;
         private readonly InventarioService _inventarioService;
+        private readonly EmpresaService _empresaService;
         private readonly ILogger<ProductosController> _logger;
 
         public ProductosController(
             ProductoService productoService,
             InventarioService inventarioService,
+            EmpresaService empresaService,
             ILogger<ProductosController> logger)
         {
             _productoService = productoService;
             _inventarioService = inventarioService;
+            _empresaService = empresaService;
             _logger = logger;
         }
 
@@ -105,6 +108,7 @@ namespace BizlyWeb.Controllers
             {
                 var categorias = await _inventarioService.ObtenerCategoriasAsync();
                 var insumos = await _inventarioService.ObtenerInsumosAsync();
+                var empresa = await _empresaService.ObtenerEmpresaActualAsync();
 
                 ViewBag.Categorias = categorias.Select(c => new CategoriaViewModel
                 {
@@ -113,14 +117,17 @@ namespace BizlyWeb.Controllers
                     Descripcion = c.Descripcion
                 }).ToList();
 
-                ViewBag.Insumos = insumos.Where(i => i.Activo).Select(i => new
+                ViewBag.Insumos = insumos.Where(i => i.Activo).Select(i => new InsumoViewModel
                 {
-                    i.Id,
-                    i.Nombre,
-                    i.UnidadMedida,
-                    i.PrecioUnitario,
-                    i.Cantidad
+                    Id = i.Id,
+                    Nombre = i.Nombre,
+                    UnidadMedida = i.UnidadMedida,
+                    PrecioUnitario = i.PrecioUnitario,
+                    Cantidad = i.Cantidad
                 }).ToList();
+
+                // Pasar el margen de ganancia para el cálculo del precio sugerido en JavaScript
+                ViewBag.MargenGanancia = empresa?.MargenGanancia ?? 0;
 
                 return View(new ProductoVentaViewModel());
             }
@@ -143,6 +150,7 @@ namespace BizlyWeb.Controllers
             {
                 var categorias = await _inventarioService.ObtenerCategoriasAsync();
                 var insumos = await _inventarioService.ObtenerInsumosAsync();
+                var empresa = await _empresaService.ObtenerEmpresaActualAsync();
 
                 ViewBag.Categorias = categorias.Select(c => new CategoriaViewModel
                 {
@@ -151,14 +159,16 @@ namespace BizlyWeb.Controllers
                     Descripcion = c.Descripcion
                 }).ToList();
 
-                ViewBag.Insumos = insumos.Where(i => i.Activo).Select(i => new
+                ViewBag.Insumos = insumos.Where(i => i.Activo).Select(i => new InsumoViewModel
                 {
-                    i.Id,
-                    i.Nombre,
-                    i.UnidadMedida,
-                    i.PrecioUnitario,
-                    i.Cantidad
+                    Id = i.Id,
+                    Nombre = i.Nombre,
+                    UnidadMedida = i.UnidadMedida,
+                    PrecioUnitario = i.PrecioUnitario,
+                    Cantidad = i.Cantidad
                 }).ToList();
+
+                ViewBag.MargenGanancia = empresa?.MargenGanancia ?? 0;
 
                 return View(model);
             }
@@ -205,6 +215,7 @@ namespace BizlyWeb.Controllers
 
             var categorias2 = await _inventarioService.ObtenerCategoriasAsync();
             var insumos2 = await _inventarioService.ObtenerInsumosAsync();
+            var empresaError = await _empresaService.ObtenerEmpresaActualAsync();
 
             ViewBag.Categorias = categorias2.Select(c => new CategoriaViewModel
             {
@@ -213,14 +224,16 @@ namespace BizlyWeb.Controllers
                 Descripcion = c.Descripcion
             }).ToList();
 
-            ViewBag.Insumos = insumos2.Where(i => i.Activo).Select(i => new
+            ViewBag.Insumos = insumos2.Where(i => i.Activo).Select(i => new InsumoViewModel
             {
-                i.Id,
-                i.Nombre,
-                i.UnidadMedida,
-                i.PrecioUnitario,
-                i.Cantidad
+                Id = i.Id,
+                Nombre = i.Nombre,
+                UnidadMedida = i.UnidadMedida,
+                PrecioUnitario = i.PrecioUnitario,
+                Cantidad = i.Cantidad
             }).ToList();
+
+            ViewBag.MargenGanancia = empresaError?.MargenGanancia ?? 0;
 
             return View(model);
         }
@@ -273,6 +286,7 @@ namespace BizlyWeb.Controllers
                 var precioSugerido = await _productoService.CalcularPrecioSugeridoAsync(id);
                 var categorias = await _inventarioService.ObtenerCategoriasAsync();
                 var insumos = await _inventarioService.ObtenerInsumosAsync();
+                var empresa = await _empresaService.ObtenerEmpresaActualAsync();
 
                 ViewBag.Categorias = categorias.Select(c => new CategoriaViewModel
                 {
@@ -281,14 +295,16 @@ namespace BizlyWeb.Controllers
                     Descripcion = c.Descripcion
                 }).ToList();
 
-                ViewBag.Insumos = insumos.Where(i => i.Activo).Select(i => new
+                ViewBag.Insumos = insumos.Where(i => i.Activo).Select(i => new InsumoViewModel
                 {
-                    i.Id,
-                    i.Nombre,
-                    i.UnidadMedida,
-                    i.PrecioUnitario,
-                    i.Cantidad
+                    Id = i.Id,
+                    Nombre = i.Nombre,
+                    UnidadMedida = i.UnidadMedida,
+                    PrecioUnitario = i.PrecioUnitario,
+                    Cantidad = i.Cantidad
                 }).ToList();
+
+                ViewBag.MargenGanancia = empresa?.MargenGanancia ?? 0;
 
                 var viewModel = new ProductoVentaViewModel
                 {

@@ -12,17 +12,20 @@ namespace BizlyWeb.Controllers
         private readonly InventarioService _inventarioService;
         private readonly SucursalService _sucursalService;
         private readonly EmpresaService _empresaService;
+        private readonly ApiService _apiService;
         private readonly ILogger<InventarioController> _logger;
 
         public InventarioController(
             InventarioService inventarioService,
             SucursalService sucursalService,
             EmpresaService empresaService,
+            ApiService apiService,
             ILogger<InventarioController> logger)
         {
             _inventarioService = inventarioService;
             _sucursalService = sucursalService;
             _empresaService = empresaService;
+            _apiService = apiService;
             _logger = logger;
         }
 
@@ -528,6 +531,30 @@ namespace BizlyWeb.Controllers
                 var insumos = await _inventarioService.ObtenerInsumosAsync();
                 var insumosDict = insumos.ToDictionary(i => i.Id!, i => i.Nombre);
 
+                // Obtener nombres de usuarios únicos desde la API
+                var usuariosIds = registros.Select(r => r.UsuarioId).Distinct().Where(id => !string.IsNullOrEmpty(id)).ToList();
+                var usuariosDict = new Dictionary<string, string>();
+                
+                foreach (var usuarioId in usuariosIds)
+                {
+                    try
+                    {
+                        var usuario = await _apiService.GetAsync<UsuarioApiDto>($"/api/usuarios/{usuarioId}");
+                        if (usuario != null && !string.IsNullOrEmpty(usuario.Nombre))
+                        {
+                            usuariosDict[usuarioId] = usuario.Nombre;
+                        }
+                        else
+                        {
+                            usuariosDict[usuarioId] = "Usuario desconocido";
+                        }
+                    }
+                    catch
+                    {
+                        usuariosDict[usuarioId] = "Usuario desconocido";
+                    }
+                }
+
                 var viewModel = registros.Select(r => new RegistroInventarioViewModel
                 {
                     Id = r.Id,
@@ -538,7 +565,7 @@ namespace BizlyWeb.Controllers
                     CantidadNueva = r.CantidadNueva,
                     Diferencia = r.CantidadNueva - r.CantidadAnterior,
                     Motivo = r.Motivo,
-                    UsuarioNombre = "Usuario", // TODO: Obtener nombre del usuario desde la API
+                    UsuarioNombre = usuariosDict.ContainsKey(r.UsuarioId) ? usuariosDict[r.UsuarioId] : "Usuario desconocido",
                     CreatedAt = r.CreatedAt
                 }).OrderByDescending(r => r.CreatedAt).ToList();
 
