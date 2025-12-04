@@ -37,7 +37,7 @@
                                             <br>
                                             <small class="text-muted">@producto.Descripcion</small>
                                             <br>
-                                            <span class="text-primary fw-bold">@producto.PrecioVenta.ToString("C")</span>
+                                            <span class="text-primary fw-bold">@producto.PrecioVenta.ToBolivianos()</span>
                                         </div>
                                         <button type="button" class="btn btn-sm btn-primary agregar-producto" 
                                                 data-producto-id="@producto.Id" 

@@ -28,7 +28,7 @@
                 {
                     <li>
                         <strong>@alerta.Categoria:</strong> Incremento del @alerta.PorcentajeIncremento.ToString("F2")% 
-                        (Mes anterior: @alerta.MontoAnterior.ToString("C"), Mes actual: @alerta.MontoActual.ToString("C"))
+                        (Mes anterior: @alerta.MontoAnterior.ToBolivianos(), Mes actual: @alerta.MontoActual.ToBolivianos())
                     </li>
                 }
             </ul>
@@ -42,7 +42,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Total</h5>
-                    <h3 class="text-primary">@Model.TotalCostosGastos.ToString("C")</h3>
+                    <h3 class="text-primary">@Model.TotalCostosGastos.ToBolivianos()</h3>
                 </div>
             </div>
         </div>
@@ -50,7 +50,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Directos</h5>
-                    <h4 class="text-info">@Model.TotalDirectos.ToString("C")</h4>
+                    <h4 class="text-info">@Model.TotalDirectos.ToBolivianos()</h4>
                 </div>
             </div>
         </div>
@@ -58,7 +58,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Administrativos</h5>
-                    <h4 class="text-secondary">@Model.TotalAdministrativos.ToString("C")</h4>
+                    <h4 class="text-secondary">@Model.TotalAdministrativos.ToBolivianos()</h4>
                 </div>
             </div>
         </div>
@@ -66,7 +66,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Fijos</h5>
-                    <h4 class="text-success">@Model.TotalFijos.ToString("C")</h4>
+                    <h4 class="text-success">@Model.TotalFijos.ToBolivianos()</h4>
                 </div>
             </div>
         </div>
@@ -74,7 +74,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Variables</h5>
-                    <h4 class="text-warning">@Model.TotalVariables.ToString("C")</h4>
+                    <h4 class="text-warning">@Model.TotalVariables.ToBolivianos()</h4>
                 </div>
             </div>
         </div>
@@ -146,7 +146,7 @@
                                 <tr>
                                     <td>@costoGasto.Fecha.ToString("dd/MM/yyyy")</td>
                                     <td>@costoGasto.Descripcion</td>
-                                    <td><strong>@costoGasto.Monto.ToString("C")</strong></td>
+                                    <td><strong>@costoGasto.Monto.ToBolivianos()</strong></td>
                                     <td>
                                         <span class="badge @(costoGasto.CategoriaFinanciera == "DIRECTO" ? "bg-info" : "bg-secondary")">
                                             @costoGasto.CategoriaFinanciera

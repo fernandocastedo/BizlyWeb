@@ -32,7 +32,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Total Ingresos</h5>
-                    <h3 class="text-success">@Model.TotalIngresos.ToString("C")</h3>
+                    <h3 class="text-success">@Model.TotalIngresos.ToBolivianos()</h3>
                 </div>
             </div>
         </div>
@@ -113,7 +113,7 @@
                                     <td><strong>@(i + 1)</strong></td>
                                     <td>@Model.TopVendedores[i].UsuarioNombre</td>
                                     <td>@Model.TopVendedores[i].TotalVentas</td>
-                                    <td>@Model.TopVendedores[i].TotalIngresos.ToString("C")</td>
+                                    <td>@Model.TopVendedores[i].TotalIngresos.ToBolivianos()</td>
                                 </tr>
                             }
                         </tbody>
@@ -155,7 +155,7 @@
                                             <span class="badge bg-info">Envío</span>
                                         }
                                     </td>
-                                    <td><strong>@venta.Total.ToString("C")</strong></td>
+                                    <td><strong>@venta.Total.ToBolivianos()</strong></td>
                                     <td>@venta.MetodoPago</td>
                                     <td>
                                         @switch (venta.EstadoPedido)

@@ -27,7 +27,7 @@
                 <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Promedio Ingresos</h5>
-                        <h3 class="text-success">@Model.Meses.Average(m => m.Ingresos).ToString("C")</h3>
+                        <h3 class="text-success">@Model.Meses.Average(m => m.Ingresos).ToBolivianos()</h3>
                     </div>
                 </div>
             </div>
@@ -35,7 +35,7 @@
                 <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Promedio Costos</h5>
-                        <h3 class="text-danger">@Model.Meses.Average(m => m.Costos).ToString("C")</h3>
+                        <h3 class="text-danger">@Model.Meses.Average(m => m.Costos).ToBolivianos()</h3>
                     </div>
                 </div>
             </div>
@@ -43,7 +43,7 @@
                 <div class="card text-center">
                     <div class="card-body">
                         <h5 class="card-title">Promedio Ganancia</h5>
-                        <h3 class="text-primary">@Model.Meses.Average(m => m.Ganancia).ToString("C")</h3>
+                        <h3 class="text-primary">@Model.Meses.Average(m => m.Ganancia).ToBolivianos()</h3>
                     </div>
                 </div>
             </div>
@@ -81,11 +81,11 @@
                                 var margen = mes.Ingresos > 0 ? (mes.Ganancia / mes.Ingresos) * 100 : 0;
                                 <tr>
                                     <td><strong>@mes.NombreMes</strong></td>
-                                    <td>@mes.Ingresos.ToString("C")</td>
-                                    <td>@mes.Costos.ToString("C")</td>
+                                    <td>@mes.Ingresos.ToBolivianos()</td>
+                                    <td>@mes.Costos.ToBolivianos()</td>
                                     <td>
                                         <span class="@(mes.Ganancia >= 0 ? "text-success" : "text-danger")">
-                                            <strong>@mes.Ganancia.ToString("C")</strong>
+                                            <strong>@mes.Ganancia.ToBolivianos()</strong>
                                         </span>
                                     </td>
                                     <td>@mes.TotalVentas</td>

@@ -54,7 +54,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Total</h5>
-                    <h3 class="text-primary">@Model.TotalCostosGastos.ToString("C")</h3>
+                    <h3 class="text-primary">@Model.TotalCostosGastos.ToBolivianos()</h3>
                 </div>
             </div>
         </div>
@@ -62,7 +62,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Directos</h5>
-                    <h4 class="text-info">@Model.TotalDirectos.ToString("C")</h4>
+                    <h4 class="text-info">@Model.TotalDirectos.ToBolivianos()</h4>
                 </div>
             </div>
         </div>
@@ -70,7 +70,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Administrativos</h5>
-                    <h4 class="text-secondary">@Model.TotalAdministrativos.ToString("C")</h4>
+                    <h4 class="text-secondary">@Model.TotalAdministrativos.ToBolivianos()</h4>
                 </div>
             </div>
         </div>
@@ -78,8 +78,8 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Fijos</h5>
-                    <h4 class="text-success">@Model.TotalFijos.ToString("C")</h4>
-                    <small class="text-muted">Variables: @Model.TotalVariables.ToString("C")</small>
+                    <h4 class="text-success">@Model.TotalFijos.ToBolivianos()</h4>
+                    <small class="text-muted">Variables: @Model.TotalVariables.ToBolivianos()</small>
                 </div>
             </div>
         </div>
@@ -106,7 +106,7 @@
                             {
                                 <tr>
                                     <td>@costo.Fecha.ToString("dd/MM/yyyy")</td>
-                                    <td><strong>@costo.Total.ToString("C")</strong></td>
+                                    <td><strong>@costo.Total.ToBolivianos()</strong></td>
                                 </tr>
                             }
                         </tbody>

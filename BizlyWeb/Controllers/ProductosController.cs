@@ -371,43 +371,50 @@ namespace BizlyWeb.Controllers
                 if (!resultado)
                 {
                     TempData["ErrorMessage"] = "No se pudo actualizar el producto.";
-                    return RedirectToAction(nameof(Edit), new { id = model.Id });
+                    return RedirectToAction(nameof(Index));
                 }
 
                 // Actualizar insumos si se proporcionaron
-                if (insumoIds != null && cantidades != null)
+                if (insumoIds != null && cantidades != null && insumoIds.Count == cantidades.Count)
                 {
-                    // Obtener insumos actuales
-                    var insumosActuales = await _productoService.ObtenerInsumosDelProductoAsync(model.Id);
-                    var insumosActualesIds = insumosActuales.Select(i => i.InsumoId).ToList();
-
-                    // Eliminar insumos que ya no están
-                    foreach (var insumoActual in insumosActuales)
+                    try
                     {
-                        if (!insumoIds.Contains(insumoActual.InsumoId))
+                        // Obtener insumos actuales
+                        var insumosActuales = await _productoService.ObtenerInsumosDelProductoAsync(model.Id);
+
+                        // Eliminar insumos que ya no están
+                        foreach (var insumoActual in insumosActuales)
                         {
-                            await _productoService.EliminarInsumoProductoAsync(insumoActual.Id!);
+                            if (!insumoIds.Contains(insumoActual.InsumoId))
+                            {
+                                await _productoService.EliminarInsumoProductoAsync(insumoActual.Id!);
+                            }
+                        }
+
+                        // Agregar o actualizar insumos
+                        for (int i = 0; i < insumoIds.Count; i++)
+                        {
+                            if (!string.IsNullOrEmpty(insumoIds[i]) && cantidades[i] > 0)
+                            {
+                                var insumoExistente = insumosActuales.FirstOrDefault(ia => ia.InsumoId == insumoIds[i]);
+                                if (insumoExistente != null)
+                                {
+                                    // Actualizar cantidad
+                                    insumoExistente.CantidadUtilizada = cantidades[i];
+                                    await _productoService.ActualizarInsumoProductoAsync(insumoExistente.Id!, insumoExistente);
+                                }
+                                else
+                                {
+                                    // Agregar nuevo insumo
+                                    await _productoService.AsociarInsumoAsync(model.Id, insumoIds[i], cantidades[i]);
+                                }
+                            }
                         }
                     }
-
-                    // Agregar o actualizar insumos
-                    for (int i = 0; i < insumoIds.Count; i++)
+                    catch (Exception exInsumos)
                     {
-                        if (!string.IsNullOrEmpty(insumoIds[i]) && cantidades[i] > 0)
-                        {
-                            var insumoExistente = insumosActuales.FirstOrDefault(ia => ia.InsumoId == insumoIds[i]);
-                            if (insumoExistente != null)
-                            {
-                                // Actualizar cantidad
-                                insumoExistente.CantidadUtilizada = cantidades[i];
-                                await _productoService.ActualizarInsumoProductoAsync(insumoExistente.Id!, insumoExistente);
-                            }
-                            else
-                            {
-                                // Agregar nuevo insumo
-                                await _productoService.AsociarInsumoAsync(model.Id, insumoIds[i], cantidades[i]);
-                            }
-                        }
+                        _logger.LogWarning(exInsumos, "Error al actualizar insumos del producto {ProductoId}, pero el producto se actualizó correctamente", model.Id);
+                        // Continuar: el producto se actualizó, solo hubo problema con los insumos
                     }
                 }
 
@@ -418,9 +425,8 @@ namespace BizlyWeb.Controllers
             {
                 _logger.LogError(ex, "Error al actualizar producto {ProductoId}", model.Id);
                 TempData["ErrorMessage"] = $"Error al actualizar el producto: {ex.Message}";
+                return RedirectToAction(nameof(Index));
             }
-
-            return RedirectToAction(nameof(Edit), new { id = model.Id });
         }
 
         /// <summary>

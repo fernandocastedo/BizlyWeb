@@ -62,7 +62,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Total Ingresos</h5>
-                    <h3 class="text-success">@Model.TotalIngresos.ToString("C")</h3>
+                    <h3 class="text-success">@Model.TotalIngresos.ToBolivianos()</h3>
                 </div>
             </div>
         </div>
@@ -70,7 +70,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Promedio por Venta</h5>
-                    <h3 class="text-info">@Model.PromedioVenta.ToString("C")</h3>
+                    <h3 class="text-info">@Model.PromedioVenta.ToBolivianos()</h3>
                 </div>
             </div>
         </div>
@@ -99,7 +99,7 @@
                                 <tr>
                                     <td>@venta.Fecha.ToString("dd/MM/yyyy")</td>
                                     <td>@venta.Cantidad</td>
-                                    <td><strong>@venta.Total.ToString("C")</strong></td>
+                                    <td><strong>@venta.Total.ToBolivianos()</strong></td>
                                 </tr>
                             }
                         </tbody>

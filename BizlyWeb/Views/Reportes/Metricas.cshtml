@@ -67,23 +67,23 @@
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-3">
-                        <h2 class="text-warning">@Model.PuntoEquilibrio.PuntoEquilibrio.ToString("C")</h2>
+                        <h2 class="text-warning">@Model.PuntoEquilibrio.PuntoEquilibrio.ToBolivianos()</h2>
                     </div>
                     <div class="row">
                         <div class="col-6">
                             <small class="text-muted">Costos Fijos:</small>
-                            <p class="mb-0"><strong>@Model.PuntoEquilibrio.CostosFijos.ToString("C")</strong></p>
+                            <p class="mb-0"><strong>@Model.PuntoEquilibrio.CostosFijos.ToBolivianos()</strong></p>
                         </div>
                         <div class="col-6">
                             <small class="text-muted">Costos Variables:</small>
-                            <p class="mb-0"><strong>@Model.PuntoEquilibrio.CostosVariables.ToString("C")</strong></p>
+                            <p class="mb-0"><strong>@Model.PuntoEquilibrio.CostosVariables.ToBolivianos()</strong></p>
                         </div>
                     </div>
                     <hr />
                     <div class="row">
                         <div class="col-6">
                             <small class="text-muted">Ingresos:</small>
-                            <p class="mb-0"><strong>@Model.PuntoEquilibrio.Ingresos.ToString("C")</strong></p>
+                            <p class="mb-0"><strong>@Model.PuntoEquilibrio.Ingresos.ToBolivianos()</strong></p>
                         </div>
                         <div class="col-6">
                             <small class="text-muted">Margen Contribución:</small>
@@ -106,12 +106,12 @@
                 <div class="row">
                     <div class="col-md-3 text-center">
                         <h5 class="text-muted">Meta</h5>
-                        <h3>@Model.MetaMensual.MetaMensual.ToString("C")</h3>
+                        <h3>@Model.MetaMensual.MetaMensual.ToBolivianos()</h3>
                     </div>
                     <div class="col-md-3 text-center">
                         <h5 class="text-muted">Ingresos Actuales</h5>
                         <h3 class="@(Model.MetaMensual.IngresosActuales >= Model.MetaMensual.MetaMensual ? "text-success" : "text-warning")">
-                            @Model.MetaMensual.IngresosActuales.ToString("C")
+                            @Model.MetaMensual.IngresosActuales.ToBolivianos()
                         </h3>
                     </div>
                     <div class="col-md-3 text-center">
@@ -128,7 +128,7 @@
                     <div class="col-md-3 text-center">
                         <h5 class="text-muted">Proyección</h5>
                         <h3 class="@(Model.MetaMensual.Proyeccion >= Model.MetaMensual.MetaMensual ? "text-success" : "text-danger")">
-                            @Model.MetaMensual.Proyeccion.ToString("C")
+                            @Model.MetaMensual.Proyeccion.ToBolivianos()
                         </h3>
                         <small class="text-muted">Tiempo transcurrido: @Model.MetaMensual.PorcentajeTiempo.ToString("F1")%</small>
                     </div>
@@ -137,14 +137,14 @@
                 {
                     <div class="alert alert-warning mt-3">
                         <i class="fas fa-exclamation-triangle"></i> 
-                        Faltan @Math.Abs(Model.MetaMensual.Diferencia).ToString("C") para alcanzar la meta mensual.
+                        Faltan @Math.Abs(Model.MetaMensual.Diferencia).ToBolivianos() para alcanzar la meta mensual.
                     </div>
                 }
                 else if (Model.MetaMensual.Diferencia > 0)
                 {
                     <div class="alert alert-success mt-3">
                         <i class="fas fa-check-circle"></i> 
-                        ¡Meta superada! Excedente: @Model.MetaMensual.Diferencia.ToString("C")
+                        ¡Meta superada! Excedente: @Model.MetaMensual.Diferencia.ToBolivianos()
                     </div>
                 }
             </div>

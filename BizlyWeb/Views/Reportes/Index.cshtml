@@ -62,7 +62,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Total Ingresos</h5>
-                    <h3 class="text-success">@Model.ReporteVentas.TotalIngresos.ToString("C")</h3>
+                    <h3 class="text-success">@Model.ReporteVentas.TotalIngresos.ToBolivianos()</h3>
                 </div>
             </div>
         </div>
@@ -70,7 +70,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Promedio por Venta</h5>
-                    <h3 class="text-info">@Model.ReporteVentas.PromedioVenta.ToString("C")</h3>
+                    <h3 class="text-info">@Model.ReporteVentas.PromedioVenta.ToBolivianos()</h3>
                 </div>
             </div>
         </div>
@@ -78,7 +78,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Total Costos</h5>
-                    <h3 class="text-danger">@Model.ReporteCostosGastos.TotalCostosGastos.ToString("C")</h3>
+                    <h3 class="text-danger">@Model.ReporteCostosGastos.TotalCostosGastos.ToBolivianos()</h3>
                 </div>
             </div>
         </div>
@@ -103,7 +103,7 @@
                     <h5 class="mb-0">Punto de Equilibrio</h5>
                 </div>
                 <div class="card-body text-center">
-                    <h2 class="text-warning">@Model.PuntoEquilibrio.PuntoEquilibrio.ToString("C")</h2>
+                    <h2 class="text-warning">@Model.PuntoEquilibrio.PuntoEquilibrio.ToBolivianos()</h2>
                     <small class="text-muted">Margen Contribución: @Model.PuntoEquilibrio.MargenContribucion.ToString("F2")%</small>
                     <br />
                     <a asp-action="Metricas" class="btn btn-sm btn-outline-primary mt-2">Ver Detalles</a>
@@ -150,7 +150,7 @@
                                             <td><strong>@(i + 1)</strong></td>
                                             <td>@Model.TopProductos[i].ProductoNombre</td>
                                             <td>@Model.TopProductos[i].CantidadVendida</td>
-                                            <td>@Model.TopProductos[i].TotalIngresos.ToString("C")</td>
+                                            <td>@Model.TopProductos[i].TotalIngresos.ToBolivianos()</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -189,7 +189,7 @@
                                             <td><strong>@(i + 1)</strong></td>
                                             <td>@Model.TopClientes[i].ClienteNombre</td>
                                             <td>@Model.TopClientes[i].TotalCompras</td>
-                                            <td>@Model.TopClientes[i].TotalGastado.ToString("C")</td>
+                                            <td>@Model.TopClientes[i].TotalGastado.ToBolivianos()</td>
                                         </tr>
                                     }
                                 </tbody>

@@ -100,8 +100,17 @@ namespace BizlyWeb.Services
                 return false;
             }
 
-            var response = await _apiService.PutAsync<ProductoVentaDto, ProductoVentaDto>($"/api/productosventa/{producto.Id}", producto);
-            return response != null;
+            try
+            {
+                // La API puede devolver 204 NoContent en actualizaciones exitosas,
+                // lo que hace que PutAsync retorne null. Si no hay excepción, la operación fue exitosa.
+                await _apiService.PutAsync<ProductoVentaDto, ProductoVentaDto>($"/api/productosventa/{producto.Id}", producto);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>

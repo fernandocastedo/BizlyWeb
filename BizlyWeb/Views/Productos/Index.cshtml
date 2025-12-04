@@ -106,20 +106,20 @@
                                         }
                                     </td>
                                     <td>@(producto.CategoriaNombre ?? "Sin categoría")</td>
-                                    <td><strong>@producto.PrecioVenta.ToString("C")</strong></td>
-                                    <td>@producto.PrecioSugerido.ToString("C")</td>
+                                    <td><strong>@producto.PrecioVenta.ToBolivianos()</strong></td>
+                                    <td>@producto.PrecioSugerido.ToBolivianos()</td>
                                     <td>
                                         @if (diferencia > 0)
                                         {
-                                            <span class="text-success">+@diferencia.ToString("C")</span>
+                                            <span class="text-success">+@diferencia.ToBolivianos()</span>
                                         }
                                         else if (diferencia < 0)
                                         {
-                                            <span class="text-danger">@diferencia.ToString("C")</span>
+                                            <span class="text-danger">@diferencia.ToBolivianos()</span>
                                         }
                                         else
                                         {
-                                            <span class="text-muted">@diferencia.ToString("C")</span>
+                                            <span class="text-muted">@diferencia.ToBolivianos()</span>
                                         }
                                     </td>
                                     <td>

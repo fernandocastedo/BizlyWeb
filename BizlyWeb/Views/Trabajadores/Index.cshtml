@@ -44,7 +44,7 @@
                                 <tr>
                                     <td><strong>@trabajador.Nombre</strong></td>
                                     <td>@trabajador.Cargo</td>
-                                    <td>@trabajador.SueldoMensual.ToString("C")</td>
+                                    <td>@trabajador.SueldoMensual.ToBolivianos()</td>
                                     <td>
                                         <span class="badge @(trabajador.TipoGasto == "fijo" ? "bg-success" : "bg-warning")">
                                             @(trabajador.TipoGasto == "fijo" ? "Fijo" : "Variable")

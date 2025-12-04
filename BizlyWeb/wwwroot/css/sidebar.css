@@ -18,6 +18,9 @@
     left: 0;
     top: 0;
     z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .sidebar.active {
@@ -25,9 +28,14 @@
 }
 
 .sidebar-header {
-    padding: 20px;
+    padding: 20px 10px;
     background: rgba(0, 0, 0, 0.2);
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-height: 175px;
 }
 
 .sidebar-header h3 {
@@ -40,10 +48,49 @@
     margin-right: 10px;
 }
 
+/* Estilos para logo en sidebar - Mismo tamaño proporcional que login */
+.sidebar-logo {
+    max-width: 230px;
+    max-height: 135px;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+    border-radius: 5px;
+}
+
+/* Contenedor scrolleable para el contenido del sidebar */
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+}
+
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
 /* Lista de navegación */
 .components {
     padding: 20px 0;
+    padding-bottom: 20px;
 }
+
 
 .components li {
     padding: 0;
@@ -73,12 +120,10 @@
 
 /* Footer del Sidebar */
 .sidebar-footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
     padding: 20px;
     background: rgba(0, 0, 0, 0.2);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 
 .user-info {

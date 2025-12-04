@@ -31,7 +31,7 @@
                         <div class="card-body">
                             <p><strong>Fecha:</strong> @pedido.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
                             <p><strong>Cliente:</strong> @(pedido.ClienteNombre ?? "Sin cliente")</p>
-                            <p><strong>Total:</strong> <span class="fs-5 text-primary">@pedido.Total.ToString("C")</span></p>
+                            <p><strong>Total:</strong> <span class="fs-5 text-primary">@pedido.Total.ToBolivianos()</span></p>
                             <p><strong>Productos:</strong> @pedido.Detalles.Count</p>
                             
                             @if (pedido.EsEnvio)

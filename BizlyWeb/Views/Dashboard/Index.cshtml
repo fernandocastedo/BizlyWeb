@@ -35,7 +35,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title mb-1">Ventas del Día</h6>
-                            <h2 class="mb-0">@Model.VentasDelDia.ToString("C")</h2>
+                            <h2 class="mb-0">@Model.VentasDelDia.ToBolivianos()</h2>
                             <small>@Model.VentasDelDiaCantidad venta(s)</small>
                         </div>
                         <i class="fas fa-shopping-cart fa-3x opacity-50"></i>
@@ -50,7 +50,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title mb-1">Ventas del Mes</h6>
-                            <h2 class="mb-0">@Model.VentasDelMes.ToString("C")</h2>
+                            <h2 class="mb-0">@Model.VentasDelMes.ToBolivianos()</h2>
                             <small>@Model.VentasDelMesCantidad venta(s)</small>
                         </div>
                         <i class="fas fa-chart-line fa-3x opacity-50"></i>
@@ -80,8 +80,8 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title mb-1">Ganancia del Mes</h6>
-                            <h2 class="mb-0">@Model.GananciaDelMes.ToString("C")</h2>
-                            <small>Costos: @Model.CostosDelMes.ToString("C")</small>
+                            <h2 class="mb-0">@Model.GananciaDelMes.ToBolivianos()</h2>
+                            <small>Costos: @Model.CostosDelMes.ToBolivianos()</small>
                         </div>
                         <i class="fas fa-money-bill-wave fa-3x opacity-50"></i>
                     </div>
@@ -151,7 +151,7 @@
                                         <tr>
                                             <td>@venta.Fecha.ToString("dd/MM/yyyy")</td>
                                             <td>@venta.Cantidad</td>
-                                            <td><strong>@venta.Total.ToString("C")</strong></td>
+                                            <td><strong>@venta.Total.ToBolivianos()</strong></td>
                                         </tr>
                                     }
                                 </tbody>
@@ -190,7 +190,7 @@
                                             <td><strong>@(i + 1)</strong></td>
                                             <td>@Model.TopProductos[i].ProductoNombre</td>
                                             <td>@Model.TopProductos[i].CantidadVendida</td>
-                                            <td><strong>@Model.TopProductos[i].TotalIngresos.ToString("C")</strong></td>
+                                            <td><strong>@Model.TopProductos[i].TotalIngresos.ToBolivianos()</strong></td>
                                         </tr>
                                     }
                                 </tbody>
@@ -229,7 +229,7 @@
                                             <td><strong>@(i + 1)</strong></td>
                                             <td>@Model.TopClientes[i].ClienteNombre</td>
                                             <td>@Model.TopClientes[i].TotalCompras</td>
-                                            <td><strong>@Model.TopClientes[i].TotalGastado.ToString("C")</strong></td>
+                                            <td><strong>@Model.TopClientes[i].TotalGastado.ToBolivianos()</strong></td>
                                         </tr>
                                     }
                                 </tbody>
@@ -272,7 +272,7 @@
                                         <tr>
                                             <td>@venta.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
                                             <td>@venta.ClienteNombre</td>
-                                            <td><strong>@venta.Total.ToString("C")</strong></td>
+                                            <td><strong>@venta.Total.ToBolivianos()</strong></td>
                                             <td>
                                                 <span class="badge bg-@(venta.EstadoPedido == "completado" ? "success" : venta.EstadoPedido == "pendiente" ? "warning" : "secondary")">
                                                     @venta.EstadoPedido

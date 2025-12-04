@@ -146,8 +146,8 @@
                                     </td>
                                     <td>@insumo.UnidadMedida</td>
                                     <td>@insumo.StockMinimo.ToString("N2")</td>
-                                    <td>@insumo.PrecioUnitario.ToString("C")</td>
-                                    <td>@insumo.PrecioTotal.ToString("C")</td>
+                                    <td>@insumo.PrecioUnitario.ToBolivianos()</td>
+                                    <td>@insumo.PrecioTotal.ToBolivianos()</td>
                                     <td>
                                         @if (insumo.Activo)
                                         {
