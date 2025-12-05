@@ -24,6 +24,12 @@ namespace BizlyWeb.Models.ViewModels
 
         [Display(Name = "Teléfono")]
         public string NuevaSucursalTelefono { get; set; } = string.Empty;
+
+        [Display(Name = "Latitud")]
+        public decimal NuevaSucursalLatitud { get; set; }
+
+        [Display(Name = "Longitud")]
+        public decimal NuevaSucursalLongitud { get; set; }
     }
 }
 

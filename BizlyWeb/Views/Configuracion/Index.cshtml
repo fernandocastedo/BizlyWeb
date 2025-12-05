@@ -109,7 +109,7 @@
                 }
 
                 <h6 class="mb-3">Nueva Sucursal</h6>
-                <form asp-action="CrearSucursal" method="post">
+                <form asp-action="CrearSucursal" method="post" id="sucursalForm">
                     <div class="mb-3">
                         <label asp-for="NuevaSucursalNombre" class="form-label"></label>
                         <input asp-for="NuevaSucursalNombre" class="form-control" />
@@ -117,9 +117,34 @@
                     </div>
                     <div class="mb-3">
                         <label asp-for="NuevaSucursalDireccion" class="form-label"></label>
-                        <input asp-for="NuevaSucursalDireccion" class="form-control" />
+                        <input asp-for="NuevaSucursalDireccion" class="form-control" id="direccionInput" />
                         <span asp-validation-for="NuevaSucursalDireccion" class="text-danger"></span>
+                        <small class="text-muted">Escribe la dirección y selecciona la ubicación en el mapa</small>
                     </div>
+                    
+                    <!-- Mapa de Google Maps -->
+                    <div class="mb-3">
+                        <label class="form-label">Ubicación en el Mapa</label>
+                        <div id="map" style="height: 300px; width: 100%; border-radius: 5px; border: 1px solid #dee2e6;"></div>
+                        <small class="text-muted">Haz clic en el mapa o busca una dirección para establecer la ubicación</small>
+                    </div>
+                    
+                    <!-- Campos ocultos para latitud y longitud -->
+                    <input type="hidden" asp-for="NuevaSucursalLatitud" id="latitudInput" />
+                    <input type="hidden" asp-for="NuevaSucursalLongitud" id="longitudInput" />
+                    
+                    <!-- Campos visibles para mostrar coordenadas -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Latitud</label>
+                            <input type="text" class="form-control" id="latitudDisplay" readonly />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Longitud</label>
+                            <input type="text" class="form-control" id="longitudDisplay" readonly />
+                        </div>
+                    </div>
+                    
                     <div class="mb-3">
                         <label asp-for="NuevaSucursalCiudad" class="form-label"></label>
                         <input asp-for="NuevaSucursalCiudad" class="form-control" />
@@ -146,5 +171,222 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiHCfCjzf-C8A8ZaYPknAQEoJ_WYTxhhk&libraries=places&callback=initMap" async defer></script>
+    
+    <script>
+        let map;
+        let newMarker; // Marcador para la nueva sucursal
+        let existingMarkers = []; // Array para almacenar marcadores de sucursales existentes
+        let geocoder;
+        let autocomplete;
+        let infoWindow;
+
+        // Datos de sucursales existentes desde el servidor
+        const sucursalesExistentes = @Html.Raw(Json.Serialize(Model.Sucursales.Select(s => new {
+            id = s.Id,
+            nombre = s.Nombre,
+            direccion = s.Direccion,
+            ciudad = s.Ciudad,
+            departamento = s.Departamento,
+            telefono = s.Telefono,
+            latitud = s.Latitud,
+            longitud = s.Longitud
+        })));
+
+        function initMap() {
+            // Coordenadas por defecto (Centro de Bolivia)
+            let defaultLocation = { lat: -17.3935, lng: -66.1570 };
+            let bounds = new google.maps.LatLngBounds();
+            
+            // Si hay sucursales existentes, centrar el mapa en ellas
+            if (sucursalesExistentes && sucursalesExistentes.length > 0) {
+                // Calcular el centro basado en todas las sucursales
+                const lats = sucursalesExistentes.map(s => s.latitud);
+                const lngs = sucursalesExistentes.map(s => s.longitud);
+                const avgLat = lats.reduce((a, b) => a + b, 0) / lats.length;
+                const avgLng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
+                defaultLocation = { lat: avgLat, lng: avgLng };
+            }
+            
+            // Inicializar el mapa
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: defaultLocation,
+                zoom: sucursalesExistentes && sucursalesExistentes.length > 0 ? 12 : 6, // Zoom más amplio para ver todo Bolivia
+                mapTypeControl: true,
+                streetViewControl: true,
+                fullscreenControl: true
+            });
+
+            geocoder = new google.maps.Geocoder();
+            infoWindow = new google.maps.InfoWindow();
+
+            // Cargar y mostrar sucursales existentes
+            if (sucursalesExistentes && sucursalesExistentes.length > 0) {
+                sucursalesExistentes.forEach(sucursal => {
+                    if (sucursal.latitud && sucursal.longitud && sucursal.latitud !== 0 && sucursal.longitud !== 0) {
+                        const position = { lat: sucursal.latitud, lng: sucursal.longitud };
+                        bounds.extend(position);
+
+                        const marker = new google.maps.Marker({
+                            map: map,
+                            position: position,
+                            title: sucursal.nombre,
+                            icon: {
+                                url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                            }
+                        });
+
+                        // Información de la sucursal al hacer clic
+                        const content = `
+                            <div style="padding: 10px;">
+                                <h6 style="margin: 0 0 5px 0; font-weight: bold;">${sucursal.nombre}</h6>
+                                <p style="margin: 0; font-size: 12px;">
+                                    <strong>Dirección:</strong> ${sucursal.direccion}<br>
+                                    ${sucursal.ciudad ? `<strong>Ciudad:</strong> ${sucursal.ciudad}<br>` : ''}
+                                    ${sucursal.departamento ? `<strong>Departamento:</strong> ${sucursal.departamento}<br>` : ''}
+                                    ${sucursal.telefono ? `<strong>Teléfono:</strong> ${sucursal.telefono}<br>` : ''}
+                                    <strong>Coordenadas:</strong> ${sucursal.latitud.toFixed(6)}, ${sucursal.longitud.toFixed(6)}
+                                </p>
+                            </div>
+                        `;
+
+                        marker.addListener("click", () => {
+                            infoWindow.setContent(content);
+                            infoWindow.open(map, marker);
+                        });
+
+                        existingMarkers.push(marker);
+                    }
+                });
+
+                // Ajustar el zoom para mostrar todas las sucursales
+                if (existingMarkers.length > 0) {
+                    map.fitBounds(bounds);
+                    // Asegurar un zoom mínimo
+                    if (map.getZoom() > 15) {
+                        map.setZoom(15);
+                    }
+                }
+            }
+
+            // Crear marcador para nueva sucursal (solo se muestra cuando se hace clic)
+            newMarker = new google.maps.Marker({
+                map: null, // Inicialmente no visible
+                draggable: true,
+                animation: google.maps.Animation.DROP,
+                icon: {
+                    url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                }
+            });
+
+            // Evento cuando se hace clic en el mapa (para crear nueva sucursal)
+            map.addListener("click", (event) => {
+                const location = event.latLng;
+                updateNewMarkerPosition(location);
+            });
+
+            // Evento cuando se arrastra el marcador de nueva sucursal
+            newMarker.addListener("dragend", (event) => {
+                updateNewMarkerPosition(event.latLng);
+            });
+
+            // Autocompletado para el campo de dirección
+            autocomplete = new google.maps.places.Autocomplete(
+                document.getElementById("direccionInput"),
+                { types: ["address"] }
+            );
+
+            autocomplete.bindTo("bounds", map);
+
+            // Cuando se selecciona una dirección del autocompletado
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    return;
+                }
+
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);
+                }
+
+                updateNewMarkerPosition(place.geometry.location);
+            });
+
+            // Botón de búsqueda
+            const searchButton = document.createElement("button");
+            searchButton.textContent = "Buscar";
+            searchButton.className = "btn btn-sm btn-primary mt-2";
+            searchButton.type = "button";
+            searchButton.onclick = buscarDireccion;
+            document.getElementById("direccionInput").parentElement.appendChild(searchButton);
+        }
+
+        function updateNewMarkerPosition(location) {
+            const lat = location.lat();
+            const lng = location.lng();
+
+            // Mostrar y posicionar el marcador de nueva sucursal
+            if (newMarker.getMap() === null) {
+                newMarker.setMap(map);
+            }
+            newMarker.setPosition(location);
+
+            // Actualizar campos ocultos
+            document.getElementById("latitudInput").value = lat;
+            document.getElementById("longitudInput").value = lng;
+
+            // Actualizar campos de visualización
+            document.getElementById("latitudDisplay").value = lat.toFixed(6);
+            document.getElementById("longitudDisplay").value = lng.toFixed(6);
+
+            // Obtener dirección inversa (geocodificación inversa)
+            geocoder.geocode({ location: location }, (results, status) => {
+                if (status === "OK" && results[0]) {
+                    document.getElementById("direccionInput").value = results[0].formatted_address;
+                }
+            });
+        }
+
+        function buscarDireccion() {
+            const address = document.getElementById("direccionInput").value;
+            if (!address) {
+                alert("Por favor, ingresa una dirección");
+                return;
+            }
+
+            geocoder.geocode({ address: address }, (results, status) => {
+                if (status === "OK" && results[0]) {
+                    const location = results[0].geometry.location;
+                    updateMarkerPosition(location);
+                    
+                    if (results[0].geometry.viewport) {
+                        map.fitBounds(results[0].geometry.viewport);
+                    } else {
+                        map.setCenter(location);
+                        map.setZoom(17);
+                    }
+                } else {
+                    alert("No se pudo encontrar la dirección: " + status);
+                }
+            });
+        }
+
+        // Validar que se haya seleccionado una ubicación antes de enviar
+        document.getElementById("sucursalForm").addEventListener("submit", function(e) {
+            const lat = document.getElementById("latitudInput").value;
+            const lng = document.getElementById("longitudInput").value;
+            
+            if (!lat || !lng || lat === "0" || lng === "0") {
+                e.preventDefault();
+                alert("Por favor, selecciona una ubicación en el mapa haciendo clic o buscando una dirección.");
+                return false;
+            }
+        });
+    </script>
 }
 

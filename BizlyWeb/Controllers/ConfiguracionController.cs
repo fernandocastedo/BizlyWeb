@@ -53,7 +53,9 @@ namespace BizlyWeb.Controllers
                     Direccion = s.Direccion,
                     Ciudad = s.Ciudad,
                     Departamento = s.Departamento,
-                    Telefono = s.Telefono
+                    Telefono = s.Telefono,
+                    Latitud = s.Latitud,
+                    Longitud = s.Longitud
                 }).ToList()
             };
 
@@ -79,6 +81,8 @@ namespace BizlyWeb.Controllers
             ModelState.Remove(nameof(model.NuevaSucursalCiudad));
             ModelState.Remove(nameof(model.NuevaSucursalDepartamento));
             ModelState.Remove(nameof(model.NuevaSucursalTelefono));
+            ModelState.Remove(nameof(model.NuevaSucursalLatitud));
+            ModelState.Remove(nameof(model.NuevaSucursalLongitud));
 
             // Validar campos requeridos de empresa manualmente
             if (string.IsNullOrWhiteSpace(model.Empresa.Nombre))
@@ -118,7 +122,9 @@ namespace BizlyWeb.Controllers
                     Direccion = s.Direccion,
                     Ciudad = s.Ciudad,
                     Departamento = s.Departamento,
-                    Telefono = s.Telefono
+                    Telefono = s.Telefono,
+                    Latitud = s.Latitud,
+                    Longitud = s.Longitud
                 }).ToList();
                 return View("Index", model);
             }
@@ -219,7 +225,9 @@ namespace BizlyWeb.Controllers
                     Direccion = s.Direccion,
                     Ciudad = s.Ciudad,
                     Departamento = s.Departamento,
-                    Telefono = s.Telefono
+                    Telefono = s.Telefono,
+                    Latitud = s.Latitud,
+                    Longitud = s.Longitud
                 }).ToList();
                 return View("Index", model);
             }
@@ -240,7 +248,9 @@ namespace BizlyWeb.Controllers
                     Direccion = model.NuevaSucursalDireccion,
                     Ciudad = model.NuevaSucursalCiudad ?? string.Empty,
                     Departamento = model.NuevaSucursalDepartamento ?? string.Empty,
-                    Telefono = model.NuevaSucursalTelefono ?? string.Empty
+                    Telefono = model.NuevaSucursalTelefono ?? string.Empty,
+                    Latitud = model.NuevaSucursalLatitud,
+                    Longitud = model.NuevaSucursalLongitud
                 };
 
                 var result = await _sucursalService.CrearSucursalAsync(dto);

@@ -8,6 +8,8 @@ namespace BizlyWeb.Models.ViewModels
         public string Ciudad { get; set; } = string.Empty;
         public string Departamento { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;
+        public decimal Latitud { get; set; }
+        public decimal Longitud { get; set; }
     }
 }
 
