@@ -1,4 +1,5 @@
 using BizlyWeb.Models.DTOs;
+using BizlyWeb.Services.Exceptions;
 using Microsoft.AspNetCore.Http;
 
 namespace BizlyWeb.Services
@@ -42,8 +43,20 @@ namespace BizlyWeb.Services
                 return new List<ProductoVentaDto>();
             }
 
-            var data = await _apiService.GetAsync<List<ProductoVentaDto>>("/api/productosventa") ?? new List<ProductoVentaDto>();
-            return data.Where(p => p.EmpresaId == empresaId).ToList();
+            try
+            {
+                var data = await _apiService.GetAsync<List<ProductoVentaDto>>("/api/productosventa") ?? new List<ProductoVentaDto>();
+                return data.Where(p => p.EmpresaId == empresaId).ToList();
+            }
+            catch (ApiException apiEx) when (apiEx.StatusCode == System.Net.HttpStatusCode.Forbidden || apiEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                // Re-lanzar ApiException para que el controlador pueda manejarla
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al obtener productos: {ex.Message}", ex);
+            }
         }
 
         /// <summary>

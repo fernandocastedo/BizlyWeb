@@ -9,7 +9,7 @@ namespace BizlyWeb.Controllers
     /// <summary>
     /// Controlador del Cuadro de Mando - Capa de Presentación
     /// </summary>
-    [AuthorizeRole("EMPRENDEDOR", "TRABAJADOR")]
+    [AuthorizeRole("EMPRENDEDOR")]
     public class DashboardController : Controller
     {
         private readonly VentaService _ventaService;

@@ -30,8 +30,18 @@ namespace BizlyWeb.Attributes
             
             if (userRole == null || !_allowedRoles.Contains(userRole))
             {
-                context.Result = new RedirectToActionResult("Index", "Home", null);
-                context.HttpContext.Items["ErrorMessage"] = "No tienes permisos para acceder a esta sección.";
+                // Si es trabajador, redirigir a Ventas (punto de venta)
+                // Si es emprendedor o no tiene rol, redirigir a Home
+                if (userRole == "TRABAJADOR")
+                {
+                    context.Result = new RedirectToActionResult("Create", "Ventas", null);
+                    context.HttpContext.Items["ErrorMessage"] = "No tienes permisos para acceder a esta sección. Solo puedes acceder a Ventas y Clientes.";
+                }
+                else
+                {
+                    context.Result = new RedirectToActionResult("Index", "Home", null);
+                    context.HttpContext.Items["ErrorMessage"] = "No tienes permisos para acceder a esta sección.";
+                }
                 return;
             }
 

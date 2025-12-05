@@ -53,6 +53,8 @@ namespace BizlyWeb.Services
             var token = GetToken();
             if (!string.IsNullOrEmpty(token))
             {
+                // Limpiar headers anteriores para evitar conflictos
+                _httpClient.DefaultRequestHeaders.Remove("Authorization");
                 _httpClient.DefaultRequestHeaders.Authorization = 
                     new AuthenticationHeaderValue("Bearer", token);
             }
@@ -70,18 +72,55 @@ namespace BizlyWeb.Services
             try
             {
                 SetAuthorizationHeader();
+                var token = GetToken();
+                
+                // Log para debugging (solo en desarrollo)
+                if (string.IsNullOrEmpty(token))
+                {
+                    _logger?.LogWarning("Intento de acceso a {Endpoint} sin token JWT", endpoint);
+                }
+                else
+                {
+                    _logger?.LogDebug("Accediendo a {Endpoint} con token JWT presente", endpoint);
+                }
+                
                 var response = await _httpClient.GetAsync(endpoint);
+                var responseContent = await response.Content.ReadAsStringAsync();
                 
                 if (response.IsSuccessStatusCode)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions
+                    return JsonSerializer.Deserialize<T>(responseContent, new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
                     });
                 }
                 
+                // Si es error de autorización, lanzar excepción específica
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || 
+                    response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    _logger?.LogWarning("Error de autorización al acceder a {Endpoint}. Status: {StatusCode}, Response: {ResponseContent}", 
+                        endpoint, response.StatusCode, responseContent);
+                    throw new ApiException(
+                        $"No tienes permisos para acceder a {endpoint}",
+                        response.StatusCode,
+                        responseContent);
+                }
+                
+                // Para otros errores, lanzar ApiException
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new ApiException(
+                        $"Error al realizar GET a {endpoint}. Código: {(int)response.StatusCode}",
+                        response.StatusCode,
+                        responseContent);
+                }
+                
                 return default(T);
+            }
+            catch (ApiException)
+            {
+                throw; // Re-throw ApiException
             }
             catch (Exception ex)
             {
@@ -121,11 +160,44 @@ namespace BizlyWeb.Services
             try
             {
                 SetAuthorizationHeader();
-                var json = JsonSerializer.Serialize(data);
+                var token = GetToken();
+                
+                // Log para debugging
+                if (string.IsNullOrEmpty(token))
+                {
+                    _logger?.LogWarning("Intento de POST a {Endpoint} sin token JWT", endpoint);
+                }
+                
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+                    WriteIndented = false
+                };
+                var json = JsonSerializer.Serialize(data, jsonOptions);
+                
+                // Log del JSON enviado (solo para debugging de registro)
+                if (endpoint.Contains("/auth/registro-emprendedor"))
+                {
+                    _logger?.LogInformation("JSON enviado a registro: {Json}", json);
+                }
+                
                 using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync(endpoint, content);
                 var responseContent = await response.Content.ReadAsStringAsync();
+                
+                // Manejar errores de autorización específicamente
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || 
+                    response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    _logger?.LogWarning("Error de autorización al acceder a {Endpoint}. Status: {StatusCode}, Response: {ResponseContent}", 
+                        endpoint, response.StatusCode, responseContent);
+                    throw new ApiException(
+                        $"No tienes permisos para acceder a {endpoint}",
+                        response.StatusCode,
+                        responseContent);
+                }
+                
                 EnsureSuccess(response, endpoint, responseContent);
 
                 // Log temporal para debugging (solo para login)
@@ -154,11 +226,37 @@ namespace BizlyWeb.Services
             try
             {
                 SetAuthorizationHeader();
-                var json = JsonSerializer.Serialize(data);
+                var token = GetToken();
+                
+                // Log para debugging
+                if (string.IsNullOrEmpty(token))
+                {
+                    _logger?.LogWarning("Intento de PUT a {Endpoint} sin token JWT", endpoint);
+                }
+                
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+                    WriteIndented = false
+                };
+                var json = JsonSerializer.Serialize(data, jsonOptions);
                 using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PutAsync(endpoint, content);
                 var responseContent = await response.Content.ReadAsStringAsync();
+                
+                // Manejar errores de autorización específicamente
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || 
+                    response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    _logger?.LogWarning("Error de autorización al acceder a {Endpoint}. Status: {StatusCode}, Response: {ResponseContent}", 
+                        endpoint, response.StatusCode, responseContent);
+                    throw new ApiException(
+                        $"No tienes permisos para acceder a {endpoint}",
+                        response.StatusCode,
+                        responseContent);
+                }
+                
                 EnsureSuccess(response, endpoint, responseContent);
 
                 // Si es 204 NoContent, retornar default (null)

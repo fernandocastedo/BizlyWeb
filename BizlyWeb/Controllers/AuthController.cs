@@ -357,8 +357,22 @@ namespace BizlyWeb.Controllers
                 var ciudadSucursal = HttpContext.Session.GetString("Registro_CiudadSucursal") ?? model.CiudadSucursal;
                 var departamentoSucursal = HttpContext.Session.GetString("Registro_DepartamentoSucursal") ?? model.DepartamentoSucursal;
 
+                // Validar que todos los campos requeridos estén presentes antes de llamar a la API
+                if (string.IsNullOrWhiteSpace(nombreEmpresa) || string.IsNullOrWhiteSpace(rubro) || 
+                    string.IsNullOrWhiteSpace(nombreUsuario) || string.IsNullOrWhiteSpace(email) || 
+                    string.IsNullOrWhiteSpace(password))
+                {
+                    ModelState.AddModelError(string.Empty, "Por favor, complete todos los campos requeridos.");
+                    RestoreStepOneData(model);
+                    RestoreStepTwoData(model);
+                    model.PasoActual = 3;
+                    return View(model);
+                }
+
                 try
                 {
+                    _logger.LogInformation("Iniciando registro para email: {Email}, NombreEmpresa: {NombreEmpresa}", email, nombreEmpresa);
+                    
                     var response = await _authService.RegisterAsync(
                         nombreEmpresa,
                         rubro,
@@ -374,33 +388,42 @@ namespace BizlyWeb.Controllers
                         departamentoSucursal
                     );
 
-                if (response != null && response.Success)
-                {
-                    // Limpiar datos temporales
-                    ClearRegistrationSession();
-                    
-                    TempData["SuccessMessage"] = "¡Registro exitoso! Bienvenido a Bizly.";
-                    return RedirectToAction("Index", "Dashboard");
+                    _logger.LogInformation("Respuesta de registro recibida: Success={Success}, Message={Message}", 
+                        response?.Success ?? false, response?.Message ?? "null");
+
+                    if (response != null && response.Success)
+                    {
+                        // Limpiar datos temporales
+                        ClearRegistrationSession();
+                        
+                        TempData["SuccessMessage"] = "¡Registro exitoso! Bienvenido a Bizly.";
+                        return RedirectToAction("Index", "Dashboard");
+                    }
+                    else
+                    {
+                        var errorMessage = response?.Message ?? "Error al registrar el usuario. Por favor, intente nuevamente.";
+                        _logger.LogWarning("Registro falló: {ErrorMessage}", errorMessage);
+                        ModelState.AddModelError(string.Empty, errorMessage);
+                        RestoreStepOneData(model);
+                        RestoreStepTwoData(model);
+                        model.PasoActual = 3;
+                        return View(model);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    var errorMessage = response?.Message ?? "Error al registrar el usuario. Por favor, intente nuevamente.";
-                    ModelState.AddModelError(string.Empty, errorMessage);
+                    _logger.LogError(ex, "Excepción al registrar usuario {Email}: {Message}", email, ex.Message);
+                    var errorMessage = ex.Message;
+                    if (ex.InnerException != null)
+                    {
+                        errorMessage += $" {ex.InnerException.Message}";
+                    }
+                    ModelState.AddModelError(string.Empty, $"Ha ocurrido un error al intentar registrarse: {errorMessage}");
                     RestoreStepOneData(model);
                     RestoreStepTwoData(model);
                     model.PasoActual = 3;
                     return View(model);
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al registrar usuario {Email}", model.Email);
-                ModelState.AddModelError(string.Empty, "Ha ocurrido un error al intentar registrarse. Por favor, intente nuevamente.");
-                RestoreStepOneData(model);
-                RestoreStepTwoData(model);
-                model.PasoActual = 3;
-                return View(model);
-            }
             }
 
             // Si llegamos aquí, el paso actual no es válido

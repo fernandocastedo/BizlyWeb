@@ -76,12 +76,15 @@ namespace BizlyWeb.Middleware
                     }
                 }
 
-                // Si está autenticado y trata de acceder a Login o Register, redirigir al dashboard
+                // Si está autenticado y trata de acceder a Login o Register, redirigir según rol
                 if (isAuthenticated && (path.Contains("/auth/login") || path.Contains("/auth/register")))
                 {
                     if (!context.Response.HasStarted)
                     {
-                        context.Response.Redirect("/Dashboard");
+                        var tipoUsuario = context.Session.GetString("TipoUsuario") ?? "EMPRENDEDOR";
+                        // Trabajadores van a Ventas, Emprendedores al Dashboard
+                        var redirectUrl = tipoUsuario == "TRABAJADOR" ? "/Ventas/Create" : "/Dashboard";
+                        context.Response.Redirect(redirectUrl);
                         return;
                     }
                 }

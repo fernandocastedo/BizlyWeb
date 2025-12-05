@@ -2,6 +2,7 @@ using BizlyWeb.Attributes;
 using BizlyWeb.Models.DTOs;
 using BizlyWeb.Models.ViewModels;
 using BizlyWeb.Services;
+using BizlyWeb.Services.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BizlyWeb.Controllers
@@ -34,19 +35,57 @@ namespace BizlyWeb.Controllers
             try
             {
                 var ventas = await _ventaService.ObtenerVentasFiltradasAsync(fechaInicio, fechaFin, estadoPedido, estadoPago);
-                var topVendedores = await _ventaService.ObtenerTopVendedoresAsync(fechaInicio, fechaFin);
+                
+                // Obtener top vendedores solo si es emprendedor (trabajadores no necesitan esta info)
+                var topVendedores = new List<(string UsuarioId, string UsuarioNombre, int TotalVentas, decimal TotalIngresos)>();
+                try
+                {
+                    var tipoUsuario = HttpContext.Session.GetString("TipoUsuario");
+                    if (tipoUsuario == "EMPRENDEDOR")
+                    {
+                        topVendedores = await _ventaService.ObtenerTopVendedoresAsync(fechaInicio, fechaFin);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error al obtener top vendedores, continuando sin esta información");
+                }
 
                 // Obtener clientes para mapear nombres
                 var clientes = await _clienteService.ObtenerClientesAsync();
                 var clientesDict = clientes.ToDictionary(c => c.Id ?? string.Empty, c => c.Nombre);
 
+                // Obtener productos una sola vez para mapear nombres
+                var productos = new List<ProductoVentaDto>();
+                try
+                {
+                    productos = await _productoService.ObtenerProductosAsync();
+                }
+                catch (ApiException)
+                {
+                    _logger.LogError("Error de API al obtener productos para mapear nombres");
+                    // Continuar sin productos, los nombres aparecerán como "N/A"
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al obtener productos para mapear nombres");
+                    // Continuar sin productos, los nombres aparecerán como "N/A"
+                }
+                var productosDict = productos.ToDictionary(p => p.Id!, p => p);
+
                 // Convertir a ViewModels
                 var ventasViewModel = new List<VentaViewModel>();
                 foreach (var venta in ventas)
                 {
-                    var detalles = await _ventaService.ObtenerDetallesVentaAsync(venta.Id!);
-                    var productos = await _productoService.ObtenerProductosAsync();
-                    var productosDict = productos.ToDictionary(p => p.Id!, p => p);
+                    var detalles = new List<DetalleVentaDto>();
+                    try
+                    {
+                        detalles = await _ventaService.ObtenerDetallesVentaAsync(venta.Id!);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error al obtener detalles de venta {VentaId}, continuando sin detalles", venta.Id);
+                    }
 
                     ventasViewModel.Add(new VentaViewModel
                     {
@@ -116,6 +155,12 @@ namespace BizlyWeb.Controllers
                 var productos = await _productoService.ObtenerProductosAsync();
                 var productosActivos = productos.Where(p => p.Activo).ToList();
 
+                if (!productosActivos.Any())
+                {
+                    _logger.LogWarning("No se encontraron productos activos para el punto de venta");
+                    TempData["WarningMessage"] = "No hay productos activos disponibles para la venta. Contacta al administrador.";
+                }
+
                 // Obtener clientes de la empresa
                 var clientesDto = await _clienteService.ObtenerClientesAsync();
                 var clientes = clientesDto.Select(c => new ClienteViewModel
@@ -144,10 +189,34 @@ namespace BizlyWeb.Controllers
 
                 return View(viewModel);
             }
+            catch (Services.Exceptions.ApiException apiEx) when (apiEx.StatusCode == System.Net.HttpStatusCode.Forbidden || apiEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                _logger.LogError(apiEx, "Error de autorización al cargar punto de venta: {StatusCode}. Response: {Response}", 
+                    apiEx.StatusCode, apiEx.ResponseContent);
+                
+                // Verificar si el usuario es trabajador
+                var tipoUsuario = HttpContext.Session.GetString("TipoUsuario");
+                if (tipoUsuario == "TRABAJADOR")
+                {
+                    TempData["ErrorMessage"] = "Error de permisos. Por favor, cierra sesión e inicia sesión nuevamente. Si el problema persiste, contacta al administrador.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "No tienes permisos para acceder a los productos. Por favor, contacta al administrador para verificar tus permisos.";
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Services.Exceptions.ApiException apiEx)
+            {
+                _logger.LogError(apiEx, "Error de API al cargar punto de venta: {StatusCode}. Response: {Response}", 
+                    apiEx.StatusCode, apiEx.ResponseContent);
+                TempData["ErrorMessage"] = $"Error al cargar productos: {apiEx.Message}";
+                return RedirectToAction(nameof(Index));
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al cargar punto de venta");
-                TempData["ErrorMessage"] = "Ocurrió un error al cargar el punto de venta.";
+                TempData["ErrorMessage"] = "Ocurrió un error al cargar el punto de venta. Por favor, intente nuevamente.";
                 return RedirectToAction(nameof(Index));
             }
         }

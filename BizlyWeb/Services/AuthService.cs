@@ -113,21 +113,47 @@ namespace BizlyWeb.Services
             string? ciudadSucursal = null,
             string? departamentoSucursal = null)
         {
+            // Validar campos requeridos antes de crear el DTO
+            if (string.IsNullOrWhiteSpace(nombreEmpresa))
+            {
+                return new RegisterResponseDto { Success = false, Message = "El nombre del emprendimiento es requerido." };
+            }
+            if (string.IsNullOrWhiteSpace(rubro))
+            {
+                return new RegisterResponseDto { Success = false, Message = "El rubro es requerido." };
+            }
+            if (string.IsNullOrWhiteSpace(nombreUsuario))
+            {
+                return new RegisterResponseDto { Success = false, Message = "El nombre del usuario es requerido." };
+            }
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return new RegisterResponseDto { Success = false, Message = "El email es requerido." };
+            }
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                return new RegisterResponseDto { Success = false, Message = "La contraseña es requerida." };
+            }
+
             var registerDto = new RegisterDto
             {
-                NombreEmpresa = nombreEmpresa?.Trim() ?? string.Empty,
-                Rubro = rubro?.Trim() ?? string.Empty,
+                NombreEmpresa = nombreEmpresa.Trim(),
+                Rubro = rubro.Trim(),
                 DescripcionEmpresa = string.IsNullOrWhiteSpace(descripcion) ? "Sin descripción" : descripcion.Trim(),
                 MargenGanancia = margenGanancia > 0 ? margenGanancia : 30, // Valor por defecto si es 0
                 LogoUrl = logoUrl ?? string.Empty,
-                NombreUsuario = nombreUsuario?.Trim() ?? string.Empty,
-                Email = email?.Trim().ToLowerInvariant() ?? string.Empty,
+                NombreUsuario = nombreUsuario.Trim(),
+                Email = email.Trim().ToLowerInvariant(),
                 Password = password,
                 NombreSucursal = string.IsNullOrWhiteSpace(nombreSucursal) ? null : nombreSucursal.Trim(),
                 DireccionSucursal = string.IsNullOrWhiteSpace(direccionSucursal) ? null : direccionSucursal.Trim(),
                 CiudadSucursal = string.IsNullOrWhiteSpace(ciudadSucursal) ? null : ciudadSucursal.Trim(),
                 DepartamentoSucursal = string.IsNullOrWhiteSpace(departamentoSucursal) ? null : departamentoSucursal.Trim()
             };
+
+            var logger = _httpContextAccessor.HttpContext?.RequestServices.GetService<ILogger<AuthService>>();
+            logger?.LogInformation("Intentando registrar emprendedor: Email={Email}, NombreEmpresa={NombreEmpresa}, Rubro={Rubro}, MargenGanancia={MargenGanancia}", 
+                registerDto.Email, registerDto.NombreEmpresa, registerDto.Rubro, registerDto.MargenGanancia);
 
             try
             {
@@ -136,6 +162,8 @@ namespace BizlyWeb.Services
                     "/api/auth/registro-emprendedor",
                     registerDto
                 );
+
+                logger?.LogInformation("Respuesta de API recibida: {Response}", apiResponse != null ? "No null" : "Null");
 
                 if (apiResponse != null && apiResponse.Usuario != null)
                 {
@@ -194,17 +222,22 @@ namespace BizlyWeb.Services
                     }
                 }
 
+                logger?.LogWarning("La API no devolvió una respuesta válida. apiResponse es null o Usuario es null");
                 return new RegisterResponseDto { Success = false, Message = "No se pudo completar el registro. La API no devolvió una respuesta válida." };
             }
             catch (ApiException apiEx)
             {
                 // Extraer mensaje de error de la respuesta de la API
                 string errorMessage = "Error al registrar";
+                List<string> camposFaltantes = new List<string>();
+                
                 try
                 {
                     if (!string.IsNullOrEmpty(apiEx.ResponseContent))
                     {
                         using var doc = System.Text.Json.JsonDocument.Parse(apiEx.ResponseContent);
+                        
+                        // Intentar obtener el mensaje principal
                         if (doc.RootElement.TryGetProperty("message", out var messageElement))
                         {
                             errorMessage = messageElement.GetString() ?? errorMessage;
@@ -213,21 +246,35 @@ namespace BizlyWeb.Services
                         {
                             errorMessage = errorElement.GetString() ?? errorMessage;
                         }
+                        
+                        // Intentar obtener campos faltantes si existen
+                        if (doc.RootElement.TryGetProperty("camposFaltantes", out var camposElement) && camposElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                        {
+                            foreach (var campo in camposElement.EnumerateArray())
+                            {
+                                camposFaltantes.Add(campo.GetString() ?? string.Empty);
+                            }
+                        }
+                        
+                        // Si hay campos faltantes, agregarlos al mensaje
+                        if (camposFaltantes.Any())
+                        {
+                            errorMessage += $". Campos faltantes: {string.Join(", ", camposFaltantes)}";
+                        }
                     }
                 }
-                catch
+                catch (Exception parseEx)
                 {
-                    // Si no se puede parsear, usar el mensaje por defecto
+                    logger?.LogWarning(parseEx, "Error al parsear respuesta de API: {ResponseContent}", apiEx.ResponseContent);
                 }
 
-                var logger = _httpContextAccessor.HttpContext?.RequestServices.GetService<ILogger<AuthService>>();
-                logger?.LogError(apiEx, "Error de API en RegisterAsync: {Message}, Response: {Response}", apiEx.Message, apiEx.ResponseContent);
+                logger?.LogError(apiEx, "Error de API en RegisterAsync: StatusCode={StatusCode}, Message={Message}, Response={Response}", 
+                    apiEx.StatusCode, apiEx.Message, apiEx.ResponseContent);
                 
                 return new RegisterResponseDto { Success = false, Message = errorMessage };
             }
             catch (Exception ex)
             {
-                var logger = _httpContextAccessor.HttpContext?.RequestServices.GetService<ILogger<AuthService>>();
                 logger?.LogError(ex, "Error inesperado en RegisterAsync: {Message}", ex.Message);
                 return new RegisterResponseDto { Success = false, Message = $"Error al registrar: {ex.Message}" };
             }

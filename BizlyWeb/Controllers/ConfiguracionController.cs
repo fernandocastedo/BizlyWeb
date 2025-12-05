@@ -1,3 +1,4 @@
+using BizlyWeb.Attributes;
 using BizlyWeb.Models.DTOs;
 using BizlyWeb.Models.ViewModels;
 using BizlyWeb.Services;
@@ -6,6 +7,7 @@ using System.Linq;
 
 namespace BizlyWeb.Controllers
 {
+    [AuthorizeRole("EMPRENDEDOR")]
     public class ConfiguracionController : Controller
     {
         private readonly EmpresaService _empresaService;

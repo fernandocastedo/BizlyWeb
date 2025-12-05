@@ -14,6 +14,9 @@
     @{
         // Verificar si el usuario está autenticado (tiene token en sesión)
         var isAuthenticated = Context.Session.GetString("JWTToken") != null;
+        var tipoUsuario = Context.Session.GetString("TipoUsuario") ?? "EMPRENDEDOR";
+        var isEmprendedor = tipoUsuario == "EMPRENDEDOR";
+        var isTrabajador = tipoUsuario == "TRABAJADOR";
     }
 
     @if (isAuthenticated)
@@ -31,26 +34,50 @@
 
                 <div class="sidebar-content">
                     <ul class="list-unstyled components">
-                        <li>
-                            <a asp-controller="Dashboard" asp-action="Index">
-                                <i class="fas fa-tachometer-alt"></i> Cuadro de Mando
-                            </a>
-                        </li>
-                        <li>
-                            <a asp-controller="Configuracion" asp-action="Index">
-                                <i class="fas fa-cog"></i> Configuración
-                            </a>
-                        </li>
-                        <li>
-                            <a asp-controller="Inventario" asp-action="Index">
-                                <i class="fas fa-boxes"></i> Inventario
-                            </a>
-                        </li>
-                        <li>
-                            <a asp-controller="Productos" asp-action="Index">
-                                <i class="fas fa-shopping-bag"></i> Productos
-                            </a>
-                        </li>
+                        @if (isEmprendedor)
+                        {
+                            <li>
+                                <a asp-controller="Dashboard" asp-action="Index">
+                                    <i class="fas fa-tachometer-alt"></i> Cuadro de Mando
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Configuracion" asp-action="Index">
+                                    <i class="fas fa-cog"></i> Configuración
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Inventario" asp-action="Index">
+                                    <i class="fas fa-boxes"></i> Inventario
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Productos" asp-action="Index">
+                                    <i class="fas fa-shopping-bag"></i> Productos
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="CostosGastos" asp-action="Index">
+                                    <i class="fas fa-money-bill-wave"></i> Costos y Gastos
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Trabajadores" asp-action="Index">
+                                    <i class="fas fa-user-tie"></i> Trabajadores
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Reportes" asp-action="Index">
+                                    <i class="fas fa-chart-bar"></i> Reportes
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Categorias" asp-action="Index">
+                                    <i class="fas fa-tags"></i> Categorías
+                                </a>
+                            </li>
+                        }
+                        <!-- Ventas y Clientes disponibles para todos los usuarios autenticados -->
                         <li>
                             <a asp-controller="Ventas" asp-action="Index">
                                 <i class="fas fa-cash-register"></i> Ventas
@@ -59,26 +86,6 @@
                         <li>
                             <a asp-controller="Clientes" asp-action="Index">
                                 <i class="fas fa-users"></i> Clientes
-                            </a>
-                        </li>
-                        <li>
-                            <a asp-controller="CostosGastos" asp-action="Index">
-                                <i class="fas fa-money-bill-wave"></i> Costos y Gastos
-                            </a>
-                        </li>
-                        <li>
-                            <a asp-controller="Trabajadores" asp-action="Index">
-                                <i class="fas fa-user-tie"></i> Trabajadores
-                            </a>
-                        </li>
-                        <li>
-                            <a asp-controller="Reportes" asp-action="Index">
-                                <i class="fas fa-chart-bar"></i> Reportes
-                            </a>
-                        </li>
-                        <li>
-                            <a asp-controller="Categorias" asp-action="Index">
-                                <i class="fas fa-tags"></i> Categorías
                             </a>
                         </li>
                     </ul>

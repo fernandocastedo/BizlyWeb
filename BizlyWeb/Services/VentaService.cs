@@ -1,4 +1,5 @@
 using BizlyWeb.Models.DTOs;
+using BizlyWeb.Services.Exceptions;
 using Microsoft.AspNetCore.Http;
 
 namespace BizlyWeb.Services
@@ -260,8 +261,14 @@ namespace BizlyWeb.Services
 
             // Actualizar estado de la venta
             venta.EstadoPedido = "cancelado";
-            var response = await _apiService.PutAsync<VentaDto, VentaDto>($"/api/ventas/{ventaId}", venta);
-            return response != null;
+            
+            // PutAsync puede retornar null si la API devuelve 204 NoContent (común en PUT)
+            // Si no hay excepción, la operación fue exitosa, incluso si response es null
+            await _apiService.PutAsync<VentaDto, VentaDto>($"/api/ventas/{ventaId}", venta);
+            
+            // Verificar que la venta se canceló correctamente
+            var ventaVerificada = await ObtenerVentaPorIdAsync(ventaId);
+            return ventaVerificada != null && ventaVerificada.EstadoPedido == "cancelado";
         }
 
         /// <summary>
