@@ -12,7 +12,7 @@ namespace BizlyWeb.Models.DTOs
         public string UsuarioNombre { get; set; } = string.Empty;
         public string? ClienteId { get; set; }
         public DateTime Fecha { get; set; }
-        public string MetodoPago { get; set; } = string.Empty; // "efectivo", "tarjeta", "transferencia", etc.
+        public string MetodoPago { get; set; } = string.Empty; // "efectivo" o "qr"
         public decimal Total { get; set; }
         public bool EsEnvio { get; set; }
         public string EstadoPago { get; set; } = "pagado"; // "pagado" / "pendiente"

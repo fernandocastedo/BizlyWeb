@@ -1,7 +1,7 @@
 using BizlyWeb.Services;
 using BizlyWeb.Filters;
 using BizlyWeb.Middleware;
-using BizlyWeb.DataProtection;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,22 +26,11 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 // Configurar Data Protection para producción (Render.com/Docker)
-// En contenedores, usar almacenamiento en memoria en lugar del sistema de archivos
-// Esto evita warnings sobre persistencia no disponible
-if (builder.Environment.IsProduction())
-{
-    // Crear un repositorio en memoria para evitar warnings de persistencia
-    var inMemoryRepository = new InMemoryXmlRepository();
-    builder.Services.AddDataProtection()
-        .SetApplicationName("BizlyWeb")
-        .PersistKeysToRepository(inMemoryRepository);
-}
-else
-{
-    // En desarrollo, usar configuración por defecto
-    builder.Services.AddDataProtection()
-        .SetApplicationName("BizlyWeb");
-}
+// En contenedores, no persistir claves (se regeneran en cada reinicio)
+// Esto es aceptable porque usamos JWT en sesión, no cookies de autenticación de ASP.NET Core
+// El warning sobre persistencia es informativo y no afecta la funcionalidad
+builder.Services.AddDataProtection()
+    .SetApplicationName("BizlyWeb");
 
 // Configurar sesiones para almacenar JWT token
 builder.Services.AddDistributedMemoryCache();

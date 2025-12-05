@@ -96,6 +96,14 @@ namespace BizlyWeb.Services
             bool esEnvio,
             List<DetalleVentaDto> detalles)
         {
+            // Validar método de pago (solo Efectivo o QR)
+            var metodoPagoLower = metodoPago?.ToLower() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(metodoPago) || 
+                (metodoPagoLower != "efectivo" && metodoPagoLower != "qr"))
+            {
+                throw new ArgumentException("El método de pago debe ser 'efectivo' o 'qr'.", nameof(metodoPago));
+            }
+
             var empresaId = GetEmpresaId();
             var usuarioId = GetUsuarioId();
             var usuarioNombre = GetUsuarioNombre();

@@ -164,6 +164,14 @@ namespace BizlyWeb.Controllers
             List<string>? productoIds,
             List<int>? cantidades)
         {
+            // Validar método de pago
+            if (string.IsNullOrWhiteSpace(metodoPago) || 
+                (metodoPago.ToLower() != "efectivo" && metodoPago.ToLower() != "qr"))
+            {
+                TempData["ErrorMessage"] = "El método de pago debe ser 'Efectivo' o 'QR'.";
+                return RedirectToAction(nameof(Create));
+            }
+
             if (productoIds == null || cantidades == null || productoIds.Count != cantidades.Count)
             {
                 TempData["ErrorMessage"] = "Debe agregar al menos un producto al carrito.";
