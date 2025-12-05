@@ -38,6 +38,11 @@ builder.Services.AddSession(options =>
 // Configurar HttpContextAccessor para acceder a la sesión desde servicios
 builder.Services.AddHttpContextAccessor();
 
+// Configurar puerto desde variable de entorno (para Render.com y Docker)
+// Debe estar ANTES de builder.Build()
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // Configurar HttpClient para consumo de API
 builder.Services.AddHttpClient<ApiService>(client =>
 {
@@ -96,8 +101,6 @@ else
     // En desarrollo, usar página de errores detallada
     app.UseDeveloperExceptionPage();
 }
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
