@@ -1,4 +1,5 @@
 using BizlyWeb.Attributes;
+using BizlyWeb.Helpers;
 using BizlyWeb.Models.DTOs;
 using BizlyWeb.Models.ViewModels;
 using BizlyWeb.Services;
@@ -192,8 +193,8 @@ namespace BizlyWeb.Controllers
                                 column.Item().Text($"Período: {reporte.FechaInicio?.ToString("dd/MM/yyyy") ?? "Inicio"} - {reporte.FechaFin?.ToString("dd/MM/yyyy") ?? "Fin"}");
                                 column.Item().PaddingTop(10);
                                 column.Item().Text($"Total de Ventas: {reporte.TotalVentas}");
-                                column.Item().Text($"Total de Ingresos: {reporte.TotalIngresos:C}");
-                                column.Item().Text($"Promedio por Venta: {reporte.PromedioVenta:C}");
+                                column.Item().Text($"Total de Ingresos: {reporte.TotalIngresos.ToBolivianos()}");
+                                column.Item().Text($"Promedio por Venta: {reporte.PromedioVenta.ToBolivianos()}");
                                 
                                 if (reporte.VentasPorDia.Any())
                                 {
@@ -201,7 +202,7 @@ namespace BizlyWeb.Controllers
                                     column.Item().Text("Ventas por Día:").Bold();
                                     foreach (var venta in reporte.VentasPorDia)
                                     {
-                                        column.Item().Text($"{venta.Fecha:dd/MM/yyyy}: {venta.Cantidad} ventas - {venta.Total:C}");
+                                        column.Item().Text($"{venta.Fecha:dd/MM/yyyy}: {venta.Cantidad} ventas - {venta.Total.ToBolivianos()}");
                                     }
                                 }
                             });
@@ -261,11 +262,11 @@ namespace BizlyWeb.Controllers
                             {
                                 column.Item().Text($"Período: {reporte.FechaInicio?.ToString("dd/MM/yyyy") ?? "Inicio"} - {reporte.FechaFin?.ToString("dd/MM/yyyy") ?? "Fin"}");
                                 column.Item().PaddingTop(10);
-                                column.Item().Text($"Total Costos y Gastos: {reporte.TotalCostosGastos:C}");
-                                column.Item().Text($"Total Directos: {reporte.TotalDirectos:C}");
-                                column.Item().Text($"Total Administrativos: {reporte.TotalAdministrativos:C}");
-                                column.Item().Text($"Total Fijos: {reporte.TotalFijos:C}");
-                                column.Item().Text($"Total Variables: {reporte.TotalVariables:C}");
+                                column.Item().Text($"Total Costos y Gastos: {reporte.TotalCostosGastos.ToBolivianos()}");
+                                column.Item().Text($"Total Directos: {reporte.TotalDirectos.ToBolivianos()}");
+                                column.Item().Text($"Total Administrativos: {reporte.TotalAdministrativos.ToBolivianos()}");
+                                column.Item().Text($"Total Fijos: {reporte.TotalFijos.ToBolivianos()}");
+                                column.Item().Text($"Total Variables: {reporte.TotalVariables.ToBolivianos()}");
                             });
 
                         page.Footer()

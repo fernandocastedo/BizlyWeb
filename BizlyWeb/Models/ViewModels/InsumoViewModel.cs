@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BizlyWeb.Models.ViewModels
 {
     /// <summary>
@@ -7,6 +9,10 @@ namespace BizlyWeb.Models.ViewModels
     {
         public string? Id { get; set; }
         public string? CategoriaId { get; set; }
+        
+        [Required(ErrorMessage = "El nombre es obligatorio")]
+        [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-'\.]+$", 
+            ErrorMessage = "El nombre solo puede contener letras, espacios y caracteres especiales (guiones, apostrofes, puntos). No se permiten números.")]
         public string Nombre { get; set; } = string.Empty;
         public string Descripcion { get; set; } = string.Empty;
         public decimal Cantidad { get; set; }

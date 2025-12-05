@@ -10,7 +10,7 @@
 .sidebar {
     min-width: 250px;
     max-width: 250px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1A3D64 0%, #2A4D74 100%);
     color: #fff;
     transition: all 0.3s;
     height: 100vh;
@@ -186,7 +186,7 @@
 
 /* Botón para colapsar sidebar */
 #sidebarCollapse {
-    background: #667eea;
+    background: #1A3D64;
     color: white;
     border: none;
     z-index: 1002; /* Encima del sidebar y overlay */
@@ -195,7 +195,7 @@
 }
 
 #sidebarCollapse:hover {
-    background: #5568d3;
+    background: #1E4A6E;
 }
 
 /* Container para contenido */
@@ -210,7 +210,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1A3D64 0%, #2A4D74 100%);
 }
 
 /* Overlay para móvil */

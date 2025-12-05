@@ -131,11 +131,5 @@ $(document).ready(function () {
     });
 });
 
-// Auto-ocultar alertas después de 5 segundos
-$(document).ready(function () {
-    setTimeout(function () {
-        $('.alert').fadeOut('slow', function () {
-            $(this).remove();
-        });
-    }, 5000);
-});
+// Las alertas permanecen visibles hasta que el usuario las cierre manualmente
+// Se eliminó el auto-ocultamiento automático para que las alertas importantes (como las de costos y gastos) permanezcan visibles

@@ -27,7 +27,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1A3D64 0%, #2A4D74 100%);
   padding: 20px;
 }
 
@@ -56,12 +56,12 @@ body {
 }
 
 .auth-container .form-control:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  border-color: #1A3D64;
+  box-shadow: 0 0 0 0.2rem rgba(26, 61, 100, 0.25);
 }
 
 .auth-container .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1A3D64 0%, #2A4D74 100%);
   border: none;
   border-radius: 8px;
   padding: 12px;
@@ -71,19 +71,19 @@ body {
 
 .auth-container .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 5px 15px rgba(26, 61, 100, 0.4);
 }
 
 .auth-container .btn-outline-primary {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: #1A3D64;
+  color: #1A3D64;
   border-radius: 8px;
   padding: 10px 20px;
   transition: all 0.3s;
 }
 
 .auth-container .btn-outline-primary:hover {
-  background: #667eea;
+  background: #1A3D64;
   color: white;
   transform: translateY(-2px);
 }
@@ -96,7 +96,7 @@ body {
 
 .auth-container .form-label i {
   margin-right: 8px;
-  color: #667eea;
+  color: #1A3D64;
 }
 
 .auth-container .text-primary {

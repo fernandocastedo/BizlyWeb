@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BizlyWeb.Controllers
 {
     /// <summary>
-    /// Controlador del Dashboard - Capa de Presentación
+    /// Controlador del Cuadro de Mando - Capa de Presentación
     /// </summary>
     [AuthorizeRole("EMPRENDEDOR", "TRABAJADOR")]
     public class DashboardController : Controller
@@ -42,7 +42,7 @@ namespace BizlyWeb.Controllers
         }
 
         /// <summary>
-        /// Vista principal del Dashboard (RF-07)
+        /// Vista principal del Cuadro de Mando (RF-07)
         /// </summary>
         public async Task<IActionResult> Index()
         {
@@ -176,8 +176,8 @@ namespace BizlyWeb.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al cargar dashboard");
-                TempData["Error"] = "Error al cargar el dashboard. Por favor, intente nuevamente.";
+                _logger.LogError(ex, "Error al cargar cuadro de mando");
+                TempData["Error"] = "Error al cargar el cuadro de mando. Por favor, intente nuevamente.";
                 return View(new DashboardViewModel());
             }
         }

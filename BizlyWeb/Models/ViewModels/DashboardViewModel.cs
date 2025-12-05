@@ -3,7 +3,7 @@ using BizlyWeb.Models.DTOs;
 namespace BizlyWeb.Models.ViewModels
 {
     /// <summary>
-    /// ViewModel para el Dashboard Principal - Capa de Presentación
+    /// ViewModel para el Cuadro de Mando Principal - Capa de Presentación
     /// </summary>
     public class DashboardViewModel
     {
@@ -41,7 +41,7 @@ namespace BizlyWeb.Models.ViewModels
     }
 
     /// <summary>
-    /// DTO para resumen de venta en el dashboard
+    /// DTO para resumen de venta en el cuadro de mando
     /// </summary>
     public class VentaResumenDto
     {
@@ -53,7 +53,7 @@ namespace BizlyWeb.Models.ViewModels
     }
 
     /// <summary>
-    /// DTO para alertas en el dashboard
+    /// DTO para alertas en el cuadro de mando
     /// </summary>
     public class AlertaDashboardDto
     {
