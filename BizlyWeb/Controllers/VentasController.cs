@@ -11,15 +11,18 @@ namespace BizlyWeb.Controllers
     {
         private readonly VentaService _ventaService;
         private readonly ProductoService _productoService;
+        private readonly ClienteService _clienteService;
         private readonly ILogger<VentasController> _logger;
 
         public VentasController(
             VentaService ventaService,
             ProductoService productoService,
+            ClienteService clienteService,
             ILogger<VentasController> logger)
         {
             _ventaService = ventaService;
             _productoService = productoService;
+            _clienteService = clienteService;
             _logger = logger;
         }
 
@@ -33,6 +36,10 @@ namespace BizlyWeb.Controllers
                 var ventas = await _ventaService.ObtenerVentasFiltradasAsync(fechaInicio, fechaFin, estadoPedido, estadoPago);
                 var topVendedores = await _ventaService.ObtenerTopVendedoresAsync(fechaInicio, fechaFin);
 
+                // Obtener clientes para mapear nombres
+                var clientes = await _clienteService.ObtenerClientesAsync();
+                var clientesDict = clientes.ToDictionary(c => c.Id ?? string.Empty, c => c.Nombre);
+
                 // Convertir a ViewModels
                 var ventasViewModel = new List<VentaViewModel>();
                 foreach (var venta in ventas)
@@ -45,6 +52,9 @@ namespace BizlyWeb.Controllers
                     {
                         Id = venta.Id,
                         ClienteId = venta.ClienteId,
+                        ClienteNombre = !string.IsNullOrEmpty(venta.ClienteId) && clientesDict.ContainsKey(venta.ClienteId)
+                            ? clientesDict[venta.ClienteId]
+                            : null,
                         Fecha = venta.Fecha,
                         MetodoPago = venta.MetodoPago,
                         Total = venta.Total,
@@ -106,8 +116,17 @@ namespace BizlyWeb.Controllers
                 var productos = await _productoService.ObtenerProductosAsync();
                 var productosActivos = productos.Where(p => p.Activo).ToList();
 
-                // TODO: Obtener clientes cuando se implemente el módulo de Clientes
-                var clientes = new List<ClienteViewModel>();
+                // Obtener clientes de la empresa
+                var clientesDto = await _clienteService.ObtenerClientesAsync();
+                var clientes = clientesDto.Select(c => new ClienteViewModel
+                {
+                    Id = c.Id,
+                    Nombre = c.Nombre,
+                    Nit = c.Nit,
+                    Telefono = c.Telefono,
+                    Email = c.Email,
+                    Direccion = c.Direccion
+                }).ToList();
 
                 var viewModel = new PuntoVentaViewModel
                 {
@@ -226,10 +245,19 @@ namespace BizlyWeb.Controllers
                 var productos = await _productoService.ObtenerProductosAsync();
                 var productosDict = productos.ToDictionary(p => p.Id!, p => p);
 
+                // Obtener nombre del cliente si existe
+                string? clienteNombre = null;
+                if (!string.IsNullOrEmpty(venta.ClienteId))
+                {
+                    var cliente = await _clienteService.ObtenerClientePorIdAsync(venta.ClienteId);
+                    clienteNombre = cliente?.Nombre;
+                }
+
                 var viewModel = new VentaViewModel
                 {
                     Id = venta.Id,
                     ClienteId = venta.ClienteId,
+                    ClienteNombre = clienteNombre,
                     Fecha = venta.Fecha,
                     MetodoPago = venta.MetodoPago,
                     Total = venta.Total,
@@ -273,6 +301,10 @@ namespace BizlyWeb.Controllers
                 var productos = await _productoService.ObtenerProductosAsync();
                 var productosDict = productos.ToDictionary(p => p.Id!, p => p);
 
+                // Obtener clientes para mapear nombres
+                var clientes = await _clienteService.ObtenerClientesAsync();
+                var clientesDict = clientes.ToDictionary(c => c.Id ?? string.Empty, c => c.Nombre);
+
                 var pedidosViewModel = new List<VentaViewModel>();
                 foreach (var pedido in pedidos)
                 {
@@ -281,6 +313,9 @@ namespace BizlyWeb.Controllers
                     {
                         Id = pedido.Id,
                         ClienteId = pedido.ClienteId,
+                        ClienteNombre = !string.IsNullOrEmpty(pedido.ClienteId) && clientesDict.ContainsKey(pedido.ClienteId)
+                            ? clientesDict[pedido.ClienteId]
+                            : null,
                         Fecha = pedido.Fecha,
                         MetodoPago = pedido.MetodoPago,
                         Total = pedido.Total,
@@ -367,6 +402,49 @@ namespace BizlyWeb.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        /// <summary>
+        /// Busca un cliente por NIT (para búsqueda en el POS)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> BuscarClientePorNit(int nit)
+        {
+            try
+            {
+                var clientes = await _clienteService.ObtenerClientesFiltradosAsync(nit: nit);
+                if (clientes.Any())
+                {
+                    var cliente = clientes.First();
+                    return Json(new
+                    {
+                        success = true,
+                        cliente = new
+                        {
+                            id = cliente.Id,
+                            nombre = cliente.Nombre,
+                            nit = cliente.Nit
+                        }
+                    });
+                }
+                else
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "No se encontró un cliente con ese NIT."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al buscar cliente por NIT {Nit}", nit);
+                return Json(new
+                {
+                    success = false,
+                    message = "Error al buscar el cliente."
+                });
+            }
         }
     }
 }

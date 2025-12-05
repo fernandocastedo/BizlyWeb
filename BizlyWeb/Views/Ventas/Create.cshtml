@@ -72,14 +72,26 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Cliente (Opcional)</label>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0">Cliente (Opcional)</label>
+                                    <a asp-controller="Clientes" asp-action="Create" class="btn btn-sm btn-outline-success" title="Crear nuevo cliente">
+                                        <i class="fas fa-user-plus"></i> Crear Cliente
+                                    </a>
+                                </div>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" id="nitBusqueda" placeholder="Buscar por NIT...">
+                                    <button type="button" class="btn btn-outline-primary" id="btnBuscarCliente">
+                                        <i class="fas fa-search"></i> Buscar
+                                    </button>
+                                </div>
                                 <select name="clienteId" class="form-select" id="clienteSelect">
                                     <option value="">Sin cliente</option>
                                     @foreach (var cliente in Model.Clientes)
                                     {
-                                        <option value="@cliente.Id">@cliente.Nombre</option>
+                                        <option value="@cliente.Id" data-nit="@cliente.Nit">@cliente.Nombre</option>
                                     }
                                 </select>
+                                <small class="form-text text-muted">Escribe el NIT del cliente y presiona buscar, o selecciona directamente del listado</small>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Método de Pago *</label>
@@ -102,7 +114,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4>Total: <span id="totalVenta" class="text-success">$0.00</span></h4>
+                            <h4>Total: <span id="totalVenta" class="text-success">0.00 Bs.</span></h4>
                         </div>
 
                         <div class="d-grid gap-2">
@@ -125,6 +137,7 @@
     <script>
         let carrito = [];
         const productos = @Html.Raw(Json.Serialize(Model.Productos));
+        const clientes = @Html.Raw(Json.Serialize(Model.Clientes));
 
         // Agregar producto al carrito
         $(document).on('click', '.agregar-producto', function() {
@@ -192,13 +205,73 @@
             });
         });
 
+        // Buscar cliente por NIT
+        $('#btnBuscarCliente').on('click', function() {
+            const nit = $('#nitBusqueda').val().trim();
+            if (!nit) {
+                alert('Por favor, ingresa un NIT para buscar.');
+                return;
+            }
+
+            const nitNumero = parseInt(nit);
+            if (isNaN(nitNumero)) {
+                alert('El NIT debe ser un número válido.');
+                return;
+            }
+
+            // Buscar primero en los clientes cargados
+            const clienteLocal = clientes.find(c => c.nit === nitNumero);
+            if (clienteLocal) {
+                $('#clienteSelect').val(clienteLocal.id);
+                $('#nitBusqueda').val('');
+                return;
+            }
+
+            // Si no se encuentra localmente, buscar en el servidor
+            $.ajax({
+                url: '@Url.Action("BuscarClientePorNit", "Ventas")',
+                type: 'GET',
+                data: { nit: nitNumero },
+                success: function(response) {
+                    if (response.success) {
+                        // Verificar si el cliente ya está en el select
+                        let option = $('#clienteSelect option[value="' + response.cliente.id + '"]');
+                        if (option.length === 0) {
+                            // Agregar el cliente al select si no está
+                            option = $('<option></option>')
+                                .attr('value', response.cliente.id)
+                                .attr('data-nit', response.cliente.nit)
+                                .text(response.cliente.nombre);
+                            $('#clienteSelect').append(option);
+                        }
+                        // Seleccionar el cliente
+                        $('#clienteSelect').val(response.cliente.id);
+                        $('#nitBusqueda').val('');
+                    } else {
+                        alert(response.message || 'No se encontró un cliente con ese NIT.');
+                    }
+                },
+                error: function() {
+                    alert('Error al buscar el cliente. Por favor, intente nuevamente.');
+                }
+            });
+        });
+
+        // Permitir buscar con Enter
+        $('#nitBusqueda').on('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                $('#btnBuscarCliente').click();
+            }
+        });
+
         function actualizarCarrito() {
             const container = $('#carritoContainer');
             let total = 0;
 
             if (carrito.length === 0) {
                 container.html('<p class="text-muted text-center py-4">El carrito está vacío. Agrega productos desde el panel izquierdo.</p>');
-                $('#totalVenta').text('$0.00');
+                $('#totalVenta').text('0.00 Bs.');
                 $('#btnFinalizarVenta').prop('disabled', true);
                 return;
             }
@@ -214,8 +287,8 @@
                             <input type="number" class="form-control form-control-sm cantidad-input" 
                                    value="${item.cantidad}" min="1" data-index="${index}" style="width: 80px;">
                         </td>
-                        <td>$${item.precioUnitario.toFixed(2)}</td>
-                        <td>$${item.subtotal.toFixed(2)}</td>
+                        <td>${item.precioUnitario.toFixed(2)} Bs.</td>
+                        <td>${item.subtotal.toFixed(2)} Bs.</td>
                         <td>
                             <button type="button" class="btn btn-sm btn-danger eliminar-item" data-index="${index}">
                                 <i class="fas fa-trash"></i>
@@ -234,7 +307,7 @@
             });
 
             container.html(html);
-            $('#totalVenta').text('$' + total.toFixed(2));
+            $('#totalVenta').text(total.toFixed(2) + ' Bs.');
             $('#btnFinalizarVenta').prop('disabled', false);
         }
 

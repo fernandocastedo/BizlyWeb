@@ -13,7 +13,7 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff;
     transition: all 0.3s;
-    min-height: 100vh;
+    height: 100vh;
     position: fixed;
     left: 0;
     top: 0;
@@ -23,8 +23,11 @@
     overflow: hidden;
 }
 
-.sidebar.active {
-    margin-left: -250px;
+/* En desktop, la clase active oculta el sidebar */
+@media (min-width: 769px) {
+    .sidebar.active {
+        margin-left: -250px;
+    }
 }
 
 .sidebar-header {
@@ -35,7 +38,10 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    flex-grow: 0;
     min-height: 175px;
+    position: relative;
+    z-index: 1;
 }
 
 .sidebar-header h3 {
@@ -62,10 +68,13 @@
 
 /* Contenedor scrolleable para el contenido del sidebar */
 .sidebar-content {
-    flex: 1;
+    flex: 1 1 auto;
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
+    max-height: 100%;
+    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+    overscroll-behavior: contain; /* Prevenir scroll del body cuando se alcanza el final */
 }
 
 .sidebar-content::-webkit-scrollbar {
@@ -120,10 +129,12 @@
 
 /* Footer del Sidebar */
 .sidebar-footer {
-    padding: 20px;
+    padding: 15px 20px;
     background: rgba(0, 0, 0, 0.2);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
+    flex-grow: 0;
+    margin-top: auto; /* Empujar al final */
 }
 
 .user-info {
@@ -169,6 +180,8 @@
     padding: 15px 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 0;
+    position: relative;
+    z-index: 1001; /* Encima del overlay pero debajo del sidebar */
 }
 
 /* Botón para colapsar sidebar */
@@ -176,6 +189,9 @@
     background: #667eea;
     color: white;
     border: none;
+    z-index: 1002; /* Encima del sidebar y overlay */
+    position: relative;
+    margin-right: 10px;
 }
 
 #sidebarCollapse:hover {
@@ -197,10 +213,40 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+/* Overlay para móvil */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 998; /* Debajo del sidebar pero sobre el contenido */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    touch-action: pan-y; /* Permitir scroll vertical pero no horizontal */
+    pointer-events: none; /* No interceptar clicks cuando está inactivo */
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+    pointer-events: auto; /* Interceptar clicks cuando está activo */
+}
+
+@media (min-width: 769px) {
+    .sidebar-overlay {
+        display: none !important;
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .sidebar {
         margin-left: -250px;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        height: 100vh;
     }
     
     .sidebar.active {
@@ -213,6 +259,36 @@
     
     #sidebarCollapse {
         display: block;
+        z-index: 1003; /* Por encima del sidebar en móvil */
+    }
+    
+    .sidebar-overlay {
+        display: none; /* Solo mostrar cuando esté activo */
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+    
+    /* Ajustar z-index del botón cuando sidebar está abierto */
+    .sidebar.active ~ .content .top-navbar {
+        z-index: 1002; /* Por encima del sidebar para que el botón sea clickeable */
+    }
+    
+    /* Mejorar scroll en móvil - el contenido debe scrollear entre header y footer */
+    .sidebar-content {
+        -webkit-overflow-scrolling: touch;
+        overflow-y: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 0; /* Importante para que flexbox calcule correctamente */
+    }
+    
+    /* Asegurar que el footer siempre sea visible al final */
+    .sidebar-footer {
+        flex-shrink: 0;
+        flex-grow: 0;
     }
 }
 

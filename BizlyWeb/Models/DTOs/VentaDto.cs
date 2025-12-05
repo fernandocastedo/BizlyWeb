@@ -9,6 +9,7 @@ namespace BizlyWeb.Models.DTOs
         public string EmpresaId { get; set; } = string.Empty;
         public string SucursalId { get; set; } = string.Empty;
         public string UsuarioId { get; set; } = string.Empty;
+        public string UsuarioNombre { get; set; } = string.Empty;
         public string? ClienteId { get; set; }
         public DateTime Fecha { get; set; }
         public string MetodoPago { get; set; } = string.Empty; // "efectivo", "tarjeta", "transferencia", etc.

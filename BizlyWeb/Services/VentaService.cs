@@ -36,6 +36,15 @@ namespace BizlyWeb.Services
             return SessionHelper.GetUsuarioId(_httpContextAccessor);
         }
 
+        private string GetUsuarioNombre()
+        {
+            var session = _httpContextAccessor.HttpContext?.Session;
+            if (session == null) return "Usuario Desconocido";
+            
+            var userName = session.GetString("UserName");
+            return !string.IsNullOrEmpty(userName) ? userName : "Usuario Desconocido";
+        }
+
         /// <summary>
         /// Obtiene todas las ventas de la empresa actual
         /// </summary>
@@ -89,6 +98,7 @@ namespace BizlyWeb.Services
         {
             var empresaId = GetEmpresaId();
             var usuarioId = GetUsuarioId();
+            var usuarioNombre = GetUsuarioNombre();
             if (string.IsNullOrEmpty(empresaId) || string.IsNullOrEmpty(usuarioId))
             {
                 throw new InvalidOperationException("No se pudo obtener la empresa o usuario actual.");
@@ -127,6 +137,7 @@ namespace BizlyWeb.Services
                 EmpresaId = empresaId,
                 SucursalId = sucursales.First().Id!,
                 UsuarioId = usuarioId,
+                UsuarioNombre = usuarioNombre,
                 ClienteId = clienteId,
                 Fecha = DateTime.UtcNow,
                 MetodoPago = metodoPago,
@@ -300,6 +311,7 @@ namespace BizlyWeb.Services
                 .Select(g => new
                 {
                     UsuarioId = g.Key,
+                    UsuarioNombre = g.First().UsuarioNombre, // Tomar el nombre de la primera venta del grupo
                     TotalVentas = g.Count(),
                     TotalIngresos = g.Sum(v => v.Total)
                 })
@@ -307,10 +319,40 @@ namespace BizlyWeb.Services
                 .Take(10)
                 .ToList();
 
-            // TODO: Obtener nombres de usuarios desde la API
+            // Obtener nombres de usuarios desde la API si no están disponibles en las ventas
+            var usuariosSinNombre = topVendedores
+                .Where(tv => string.IsNullOrEmpty(tv.UsuarioNombre))
+                .Select(tv => tv.UsuarioId)
+                .Distinct()
+                .ToList();
+
+            var nombresUsuarios = new Dictionary<string, string>();
+            if (usuariosSinNombre.Any())
+            {
+                foreach (var usuarioId in usuariosSinNombre)
+                {
+                    try
+                    {
+                        var usuario = await _apiService.GetAsync<UsuarioApiDto>($"/api/usuarios/{usuarioId}");
+                        if (usuario != null && !string.IsNullOrEmpty(usuario.Nombre))
+                        {
+                            nombresUsuarios[usuarioId] = usuario.Nombre;
+                        }
+                    }
+                    catch
+                    {
+                        // Si no se puede obtener el usuario, continuar
+                    }
+                }
+            }
+
             return topVendedores.Select(tv => (
                 tv.UsuarioId,
-                UsuarioNombre: $"Usuario {tv.UsuarioId.Substring(0, Math.Min(8, tv.UsuarioId.Length))}",
+                UsuarioNombre: !string.IsNullOrEmpty(tv.UsuarioNombre) 
+                    ? tv.UsuarioNombre 
+                    : (nombresUsuarios.ContainsKey(tv.UsuarioId) 
+                        ? nombresUsuarios[tv.UsuarioId] 
+                        : $"Usuario {tv.UsuarioId.Substring(0, Math.Min(8, tv.UsuarioId.Length))}"),
                 tv.TotalVentas,
                 tv.TotalIngresos
             )).ToList();
