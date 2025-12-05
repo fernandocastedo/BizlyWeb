@@ -53,6 +53,27 @@ namespace BizlyWeb.Models.ViewModels
         [Compare("Password", ErrorMessage = "Las contraseñas no coinciden")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
+        // Paso 3: Datos de Sucursal Principal (Opcional)
+        [StringLength(100, ErrorMessage = "El nombre debe tener máximo 100 caracteres")]
+        [Display(Name = "Nombre de la Sucursal")]
+        public string? NombreSucursal { get; set; }
+
+        [StringLength(200, ErrorMessage = "La dirección debe tener máximo 200 caracteres")]
+        [Display(Name = "Dirección")]
+        public string? DireccionSucursal { get; set; }
+
+        [StringLength(100, ErrorMessage = "La ciudad debe tener máximo 100 caracteres")]
+        [Display(Name = "Ciudad")]
+        public string? CiudadSucursal { get; set; }
+
+        [StringLength(100, ErrorMessage = "El departamento debe tener máximo 100 caracteres")]
+        [Display(Name = "Departamento")]
+        public string? DepartamentoSucursal { get; set; }
+
+        [StringLength(20, ErrorMessage = "El teléfono debe tener máximo 20 caracteres")]
+        [Display(Name = "Teléfono (Opcional)")]
+        public string? TelefonoSucursal { get; set; }
+
         // Control del paso actual
         public int PasoActual { get; set; } = 1;
     }

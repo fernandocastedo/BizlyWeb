@@ -1,6 +1,7 @@
 using BizlyWeb.Services;
 using BizlyWeb.Filters;
 using BizlyWeb.Middleware;
+using BizlyWeb.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,24 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = 20971520; // 20MB
 });
 
+// Configurar Data Protection para producción (Render.com/Docker)
+// En contenedores, usar almacenamiento en memoria en lugar del sistema de archivos
+// Esto evita warnings sobre persistencia no disponible
+if (builder.Environment.IsProduction())
+{
+    // Crear un repositorio en memoria para evitar warnings de persistencia
+    var inMemoryRepository = new InMemoryXmlRepository();
+    builder.Services.AddDataProtection()
+        .SetApplicationName("BizlyWeb")
+        .PersistKeysToRepository(inMemoryRepository);
+}
+else
+{
+    // En desarrollo, usar configuración por defecto
+    builder.Services.AddDataProtection()
+        .SetApplicationName("BizlyWeb");
+}
+
 // Configurar sesiones para almacenar JWT token
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -38,13 +57,15 @@ builder.Services.AddSession(options =>
 // Configurar HttpContextAccessor para acceder a la sesión desde servicios
 builder.Services.AddHttpContextAccessor();
 
-// Configurar puerto desde variable de entorno (solo para producción/Docker)
-// En desarrollo, usar launchSettings.json
+// Configurar puerto desde variable de entorno (Render.com/Docker)
+// Render.com inyecta la variable PORT, debemos usarla con prioridad
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(port))
 {
-    // Solo configurar puerto si la variable PORT está definida (Render.com/Docker)
+    // Render.com asigna un puerto dinámico, usarlo directamente
     builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+    // También establecer la variable de entorno para que ASP.NET Core la use
+    Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://0.0.0.0:{port}");
 }
 
 // Configurar HttpClient para consumo de API
@@ -97,8 +118,8 @@ TaskScheduler.UnobservedTaskException += (sender, args) =>
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    // Deshabilitar HSTS si no hay HTTPS configurado (Render.com puede usar proxy reverso)
+    // app.UseHsts(); // Comentado porque Render.com maneja HTTPS en el proxy
 }
 else
 {
@@ -106,7 +127,14 @@ else
     app.UseDeveloperExceptionPage();
 }
 
-app.UseHttpsRedirection();
+// Solo usar HTTPS redirection si estamos en desarrollo o si hay HTTPS configurado
+// En Render.com, el proxy maneja HTTPS, así que no necesitamos redirección
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+// En producción, Render.com maneja HTTPS en el proxy, no redirigir
+
 app.UseStaticFiles();
 
 app.UseRouting();
